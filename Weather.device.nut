@@ -1,13 +1,11 @@
-// Weather
+// Weather Monitor
 // Copyright 2016-17, Tony Smith
 
 #require "ht16k33matrix.class.nut:1.2.0"
 
 #import "../Location/location.class.nut"
 
-// These two calls need to be as early in the code as possible
-
-// Set up connectivity policy
+// Set up connectivity policy — this should come as early in the code as possible
 server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 // CONSTANTS
@@ -34,6 +32,7 @@ local debug = false;
 // DEVICE FUNCTIONS
 
 function intro() {
+    // Fill in the matrix pixels from the outside in, in spiral fashion
     local x = 7, y = 0;
     local dx = 0, dy = 1;
     local mx = 6, my = 7;
@@ -68,6 +67,7 @@ function intro() {
 }
 
 function outro() {
+    // Clear the matrix pixels from the inside out, in spiral fashion
     local x = 4, y = 3;
     local dx = -1, dy = 0;
     local mx = 5, my = 4;
@@ -115,7 +115,7 @@ function displayWeather(data) {
         }
     }
 
-    // Save the forecase
+    // Save the forecast
     savedData = data;
 
     // Clear this screen
@@ -126,17 +126,14 @@ function displayWeather(data) {
 
     // Add the temperature
     local f = data.temp.tofloat();
-    // f = ((f - 32) * 5) / 9;
     s = s + format("Out: %.1f", f) + "\x7F" + "c";
     if (localTemp != null) s = s + " In: " + localTemp + "\x7F" + "c";
     savedForecast = s;
 
-    // Draw text
-    // local c = 1, d = 2;
-    // led.displayLine(s + "    " + c.tochar() + d.tochar() + "    ");
+    // Draw text - spaces added to scroll everything off the matrix
     led.displayLine(s + "    ");
 
-    // Sleep for half a second
+    // Pause for half a second
     imp.sleep(0.5);
 
     // Display the weather icon
@@ -195,6 +192,7 @@ function retry() {
 }
 
 function logWokenReason() {
+    // For debugging, log the reason the imp restarted
     if (debug) {
         local c = hardware.wakereason();
         local s = "Device restarted. Reason: ";
@@ -278,6 +276,7 @@ agent.on("weather.show.forecast", function(data) {
 
 agent.on("weather.set.local.temp", function(temp) {
     // The agent has sent update local temperature data for display
+    if (debug) server.log("Local temperature data received from agent");
     localTemp = temp;
 });
 
@@ -291,9 +290,17 @@ agent.on("weather.set.build", function(version) {
     led.displayLine("     Weather " + version);
 });
 
-agent.on("weather.set.angle", function(angle) {
+agent.on("weather.set.angle", function(a) {
     // The user has updated the device brightness/display angle settings
-    led.init(bright, angle);
+    led.init(bright, a);
+    angle = a;
+    displayWeather(savedData);
+});
+
+agent.on("weather.set.bright", function(b) {
+    // The user has updated the device brightness/display angle settings
+    led.init(b, angle);
+    bright = b;
     displayWeather(savedData);
 });
 

@@ -1,4 +1,4 @@
-// Weather
+// Weather Monitor
 // Copyright 2016-17, Tony Smith
 
 #require "DarkSky.class.nut:1.0.1"
@@ -28,11 +28,12 @@ const htmlString = @"
         <div class='current-status'>
           <h4 class='temp-status' align='center'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
           <h4 class='outlook-status' align='center'>Outlook: <span></span></h4>
+          <p class='location-status' align='center'>Location: <span></span></p>
           <p class='error-message' align='center'><span></span></p>
         </div>
         <br>
-        <div class='controls'>
-          <form id='name-form' align='center'>
+        <div class='controls' align='center'>
+          <form id='button-form'>
             <div class='update-button'>
               <button type='submit' id='updater' style='height:32px;width:200px'>Update Monitor</button><br>&nbsp;
             </div>
@@ -40,8 +41,32 @@ const htmlString = @"
               <button type='submit' id='rebooter' style='height:32px;width:200px'>Restart Monitor</button><br>&nbsp;
             </div>
           </form>
-        </div> <!-- controls -->
-        <p>&nbsp;<br>&nbsp;<small>Weather Monitor copyright &copy; Tony Smith, 2016-17</small><br>&nbsp;</p>
+          <hr>
+        </div> <!-- controls 1 -->
+        <div class='controls'>
+          <table width='100%%'>
+            <tr>
+              <td width='25%%'>&nbsp;</td>
+              <td width='50%%'>
+                <form id='settings'>
+                  <div class='angle-radio'>
+                    <p><b>Display Angle</b></p>
+                    <input type='radio' name='angle' value='0' checked> 0&deg;<br>
+                    <input type='radio' name='angle' value='90'> 90&deg;<br>
+                    <input type='radio' name='angle' value='180'> 180&deg;<br>
+                    <input type='radio' name='angle' value='270'> 270&deg;
+                  </div>
+                  <div class='slider'>
+                    <p class='brightness-status'>&nbsp;<br><b>Brightness</b> <span></span></p>
+                    <input type='range' name='brightness' id='brightness' value='15' min='0' max='15'>
+                  </div>
+                </form>
+              </td>
+              <td width='25%%'>&nbsp;</td>
+            </tr>
+          </table>
+        </div> <!-- controls 1 -->
+        <p class='text-center'>&nbsp;<br>&nbsp;<small>Weather Monitor copyright &copy; Tony Smith, 2016-17</small><br>&nbsp;</p>
       </div>  <!-- container -->
       </div>
       <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
@@ -50,11 +75,15 @@ const htmlString = @"
         getState(updateReadout);
         $('.update-button button').on('click', update);
         $('.reboot-button button').on('click', reboot);
+        $('input:radio[name=angle]').click(setangle);
 
-        function triggerUpdate(e){
-          e.preventDefault();
-          update();
-        }
+        var ri = document.getElementById('brightness');
+        ri.addEventListener('mouseup', function() {
+            $('.brightness-status span').text(ri.value);
+            setbright();
+        });
+
+        $('.brightness-status span').text(data.bright);
 
         function updateReadout(data) {
           if (data.error) {
@@ -62,7 +91,17 @@ const htmlString = @"
           } else {
             $('.temp-status span').text(data.temp);
             $('.outlook-status span').text(data.cast);
+            $('.location-status span').text(data.location.long + ', ' + data.location.lat);
             $('.error-message span').text(' ');
+
+            $('[name=angle]').each(function(i, v) {
+                if (data.angle == $(this).val()) {
+                    $(this).prop('checked', true);
+                }
+            });
+
+            $('[name=brightness]').val(data.bright);
+            $('.brightness-status span').text(data.bright);
           }
 
           setTimeout(function() {
@@ -102,6 +141,39 @@ const htmlString = @"
             success : function(response) {
               getState(updateReadout);
             }
+          });
+        }
+
+        function setangle() {
+          var s;
+          var r = document.getElementsByName('angle');
+          for (var i = 0, length = r.length ; i < length ; i++) {
+            if (r[i].checked) {
+              s = i;
+              break;
+            }
+          }
+
+          if (s == 1) {
+            s = 90;
+          } else if (s == 2) {
+            s = 180;
+          } else if (s == 3) {
+            s = 270;
+          }
+
+          $.ajax({
+            url : agenturl + '/settings',
+            type: 'POST',
+            data: JSON.stringify({ 'angle' : s }),
+          });
+        }
+
+        function setbright() {
+          $.ajax({
+            url : agenturl + '/settings',
+            type: 'POST',
+            data: JSON.stringify({ 'bright' : $('[name=brightness]').val() })
           });
         }
 
@@ -298,7 +370,6 @@ if (loadedSettings.len() == 0) {
     settings.angle <- 3;
     settings.bright <- 0;
     settings.debug <- false;
-    debug = false;
     server.save(settings);
 } else {
     settings = loadedSettings;
@@ -319,7 +390,6 @@ api = Rocky();
 
 // GET at / returns the UI
 api.get("/", function(context) {
-    // Root request: just return standard HTML string
     context.send(200, format(htmlString, http.agenturl()));
 });
 
@@ -328,7 +398,6 @@ api.get("/", function(context) {
 //   "icon" : "<the weather icon name>" }
 // If there is an error, the JSON will contain the key 'error'
 api.get("/current", function(context) {
-    // Handle request for night dimmer status
     local data = {};
     if (savedData != null) {
         data = savedData;
@@ -336,6 +405,12 @@ api.get("/current", function(context) {
         data.error <- "Weather data not yet received. Please try again shortly";
     }
 
+    local loc = {};
+    loc.long <- myLongitude;
+    loc.lat <- myLatitude;
+    data.location <- loc;
+    data.angle <- settings.angle.tostring();
+    data.bright <- settings.bright;
     data = http.jsonencode(data);
     context.send(200, data);
 });
@@ -346,7 +421,6 @@ api.get("/current", function(context) {
 // 'update' causes the forecast to be updated
 // 'reboot' causes the device to restart
 api.post("/update", function(context) {
-    // Apply setting for data from /dimmer endpoint
     try {
         local data = http.jsondecode(context.req.rawbody);
 
@@ -364,6 +438,45 @@ api.post("/update", function(context) {
     }
 
     context.send(200, "OK");
+});
+
+api.post("/settings", function(context) {
+    // Apply setting for data from /dimmer endpoint
+    try {
+        local data = http.jsondecode(context.req.rawbody);
+
+        if ("angle" in data) {
+            local a = data.angle.tointeger();
+            if (debug) server.log("Display angle changed to " + a);
+            device.send("weather.set.angle", a);
+            settings.angle = a;
+        }
+
+        if ("bright" in data) {
+            local b = data.bright.tointeger();
+            if (debug) server.log("Display brightness changed to " + b);
+            device.send("weather.set.bright", b);
+            settings.bright = b;
+        }
+    } catch (err) {
+        server.error(err);
+        context.send(400, "Bad data posted");
+        return;
+    }
+
+    context.send(200, "OK");
+    local r = server.save(settings);
+    if (r != 0) server.error("Could not save settings (code: " + r + ")");
+});
+
+api.post("/debug", function(context) {
+    debug = !debug;
+    if (debug) server.log("Debug enabled");
+    device.send("weather.set.debug", debug);
+    settings.debug = debug;
+    local r = server.save(settings);
+    if (r != 0) server.error("Could not save settings (code: " + r + ")");
+    context.send(200, (debug ? "Debug on" : "Debug off"));
 });
 
 // In five minutes' time, check if the device has not synced (as far as
