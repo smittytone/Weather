@@ -60,6 +60,10 @@ const htmlString = @"
                     <p class='brightness-status'>&nbsp;<br><b>Brightness</b> <span></span></p>
                     <input type='range' name='brightness' id='brightness' value='15' min='0' max='15'>
                   </div>
+                  <hr>
+                  <div class='debug-checkbox'>
+                    <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
+                  </div>
                 </form>
               </td>
               <td width='25%%'>&nbsp;</td>
@@ -75,7 +79,9 @@ const htmlString = @"
         getState(updateReadout);
         $('.update-button button').on('click', update);
         $('.reboot-button button').on('click', reboot);
+        $('.reboot-button button').on('click', reboot);
         $('input:radio[name=angle]').click(setangle);
+        $('input:checkbox[name=debug]').click(setdebug);
 
         var ri = document.getElementById('brightness');
         ri.addEventListener('mouseup', function() {
@@ -83,7 +89,7 @@ const htmlString = @"
             setbright();
         });
 
-        $('.brightness-status span').text(data.bright);
+        $('.brightness-status span').text(ri.value);
 
         function updateReadout(data) {
           if (data.error) {
@@ -102,6 +108,12 @@ const htmlString = @"
 
             $('[name=brightness]').val(data.bright);
             $('.brightness-status span').text(data.bright);
+
+            if (data.debug == true) {
+                document.getElementById('debug').checked = true;
+            } else {
+                document.getElementById('debug').checked = false;
+            }
           }
 
           setTimeout(function() {
@@ -174,6 +186,14 @@ const htmlString = @"
             url : agenturl + '/settings',
             type: 'POST',
             data: JSON.stringify({ 'bright' : $('[name=brightness]').val() })
+          });
+        }
+
+        function setdebug() {
+            $.ajax({
+            url : agenturl + '/debug',
+            type: 'POST',
+            data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
           });
         }
 
@@ -411,6 +431,7 @@ api.get("/current", function(context) {
     data.location <- loc;
     data.angle <- settings.angle.tostring();
     data.bright <- settings.bright;
+    data.debug <- settings.debug;
     data = http.jsonencode(data);
     context.send(200, data);
 });
@@ -470,12 +491,28 @@ api.post("/settings", function(context) {
 });
 
 api.post("/debug", function(context) {
-    debug = !debug;
-    if (debug) server.log("Debug enabled");
-    device.send("weather.set.debug", debug);
-    settings.debug = debug;
-    local r = server.save(settings);
-    if (r != 0) server.error("Could not save settings (code: " + r + ")");
+    try {
+        local data = http.jsondecode(context.req.rawbody);
+
+        if ("debug" in data) {
+            debug = data.debug;
+            if (debug) {
+                server.log("Debug enabled");
+            } else {
+                server.log("Debug disabled");
+            }
+
+            device.send("weather.set.debug", debug);
+            settings.debug = debug;
+            local r = server.save(settings);
+            if (r != 0) server.error("Could not save settings (code: " + r + ")");
+        }
+    } catch (err) {
+        server.error(err);
+        context.send(400, "Bad data posted");
+        return;
+    }
+
     context.send(200, (debug ? "Debug on" : "Debug off"));
 });
 
