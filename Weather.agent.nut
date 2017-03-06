@@ -24,7 +24,7 @@ const htmlString = @"
     <body>
       <div class='container' style='padding: 20px'>
       <div class='container' style='border: 2px solid gray'>
-        <h2 class='text-center'>Weather Monitor<br>&nbsp;</h2>
+        <h2 class='text-center'>Weather Monitor <span></span><br>&nbsp;</h2>
         <div class='current-status'>
           <h4 class='temp-status' align='center'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
           <h4 class='outlook-status' align='center'>Outlook: <span></span></h4>
@@ -99,6 +99,7 @@ const htmlString = @"
             $('.outlook-status span').text(data.cast);
             $('.location-status span').text(data.location.long + ', ' + data.location.lat);
             $('.error-message span').text(' ');
+            $('.text-center span').text(data.vers);
 
             $('[name=angle]').each(function(i, v) {
                 if (data.angle == $(this).val()) {
@@ -432,6 +433,7 @@ api.get("/current", function(context) {
     data.angle <- settings.angle.tostring();
     data.bright <- settings.bright;
     data.debug <- settings.debug;
+    data.vers <- appVersion.slice(0, 3);
     data = http.jsonencode(data);
     context.send(200, data);
 });
