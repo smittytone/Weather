@@ -10,26 +10,26 @@
 // CONSTANTS
 
 const refreshTime = 900;
-const htmlString = @"
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <title>Weather Monitor</title>
-      <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
-      <meta name='viewport' content='width=device-width, height=device-height, initial-scale=1.0'>
-      <style>
-        .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
-      </style>
-    </head>
-    <body>
-      <div class='container' style='padding: 20px'>
+const htmlString = @"<!DOCTYPE html>
+<html>
+  <head>
+    <title>Weather Monitor</title>
+    <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
+    <meta name='viewport' content='width=device-width, height=device-height, initial-scale=1.0'>
+    <style>
+      .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
+    </style>
+  </head>
+  <body>
+    <div class='container' style='padding: 20px'>
       <div class='container' style='border: 2px solid gray'>
         <h2 class='text-center'>Weather Monitor <span></span><br>&nbsp;</h2>
         <div class='current-status'>
           <h4 class='temp-status' align='center'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
           <h4 class='outlook-status' align='center'>Outlook: <span></span></h4>
           <p class='location-status' align='center'>Location: <span></span></p>
-          <p class='error-message' align='center'><span></span></p>
+          <p>Forecast updates automatically every two minutes</p>
+          <p class='error-message' align='center'><i><span></span></i></p>
         </div>
         <br>
         <div class='controls' align='center'>
@@ -42,167 +42,170 @@ const htmlString = @"
             </div>
           </form>
           <hr>
-        </div> <!-- controls 1 -->
+        </div>
         <div class='controls'>
           <table width='100%%'>
             <tr>
               <td width='25%%'>&nbsp;</td>
               <td width='50%%'>
-                <form id='settings'>
-                  <div class='angle-radio'>
-                    <p><b>Display Angle</b></p>
-                    <input type='radio' name='angle' value='0' checked> 0&deg;<br>
-                    <input type='radio' name='angle' value='90'> 90&deg;<br>
-                    <input type='radio' name='angle' value='180'> 180&deg;<br>
-                    <input type='radio' name='angle' value='270'> 270&deg;
-                  </div>
-                  <div class='slider'>
-                    <p class='brightness-status'>&nbsp;<br><b>Brightness</b> <span></span></p>
-                    <input type='range' name='brightness' id='brightness' value='15' min='0' max='15'>
-                  </div>
-                  <hr>
-                  <div class='debug-checkbox'>
-                    <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
-                  </div>
-                </form>
+              <form id='settings'>
+                <div class='angle-radio'>
+                  <p><b>Display Angle</b></p>
+                  <input type='radio' name='angle' value='0' checked> 0&deg;<br>
+                  <input type='radio' name='angle' value='90'> 90&deg;<br>
+                  <input type='radio' name='angle' value='180'> 180&deg;<br>
+                  <input type='radio' name='angle' value='270'> 270&deg;
+                </div>
+                <div class='slider'>
+                  <p class='brightness-status'>&nbsp;<br><b>Brightness</b> <span></span></p>
+                  <input type='range' name='brightness' id='brightness' value='15' min='0' max='15'>
+                </div>
+                <hr>
+                <div class='debug-checkbox'>
+                  <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
+                </div>
+              </form>
               </td>
               <td width='25%%'>&nbsp;</td>
             </tr>
           </table>
-        </div> <!-- controls 1 -->
+        </div>
         <p class='text-center'>&nbsp;<br>&nbsp;<small>Weather Monitor copyright &copy; Tony Smith, 2016-17</small><br>&nbsp;</p>
-      </div>  <!-- container -->
       </div>
-      <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
-      <script>
-        var agenturl = '%s';
-        getState(updateReadout);
+    </div>
 
-        $('.update-button button').on('click', update);
-        $('.reboot-button button').on('click', reboot);
-        $('.reboot-button button').on('click', reboot);
-        $('input:radio[name=angle]').click(setangle);
-        $('input:checkbox[name=debug]').click(setdebug);
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+    <script>
+      var agenturl = '%s';
+      // Get initial readings
+      getState(updateReadout);
 
-        var ri = document.getElementById('brightness');
-        ri.addEventListener('mouseup', function() {
-            $('.brightness-status span').text(ri.value);
-            setbright();
-        });
+      // Set UI click actions
+      $('.update-button button').on('click', update);
+      $('.reboot-button button').on('click', reboot);
+      $('input:radio[name=angle]').click(setangle);
+      $('input:checkbox[name=debug]').click(setdebug);
 
+      var slider = document.getElementById('brightness');
+      slider.addEventListener('mouseup', function() {
         $('.brightness-status span').text(ri.value);
+        setbright();
+      });
+      $('.brightness-status span').text(slider.value);
 
-        function updateReadout(data) {
-          if (data.error) {
-            $('.error-message span').text(data.error);
-          } else {
-            $('.temp-status span').text(data.temp);
-            $('.outlook-status span').text(data.cast);
-            $('.location-status span').text(data.location.long + ', ' + data.location.lat);
-            $('.error-message span').text(' ');
-            $('.text-center span').text(data.vers);
+      function updateReadout(data) {
+        if (data.error) {
+          $('.error-message span').text(data.error);
+        } else {
+          $('.temp-status span').text(data.temp);
+          $('.outlook-status span').text(data.cast);
+          $('.location-status span').text(data.location.long + ', ' + data.location.lat);
+          $('.error-message span').text(' ');
+          $('.text-center span').text(data.vers);
 
-            $('[name=angle]').each(function(i, v) {
-                if (data.angle == $(this).val()) {
-                    $(this).prop('checked', true);
-                }
-            });
-
-            $('[name=brightness]').val(data.bright);
-            $('.brightness-status span').text(data.bright);
-
-            if (data.debug == true) {
-                document.getElementById('debug').checked = true;
-            } else {
-                document.getElementById('debug').checked = false;
+          $('[name=angle]').each(function(i, v) {
+            if (data.angle == $(this).val()) {
+              $(this).prop('checked', true);
             }
-          }
+          });
 
-          setTimeout(function() {
-            getState(updateReadout);
+           $('[name=brightness]').val(data.bright);
+           $('.brightness-status span').text(data.bright);
+
+           document.getElementById('debug').checked = data.debug;
+        }
+
+        setTimeout(function() {
+          getState(updateReadout);
           }, 120000);
-        }
+      }
 
-        function getState(callback) {
-          $.ajax({
-            url : agenturl + '/current',
-            type: 'GET',
-            success : function(response) {
-              response = JSON.parse(response);
-              if (callback) {
-                callback(response);
-              }
-            }
-          });
-        }
+      function getState(callback) {
+         // Request the current data
+         $.ajax({
+           url : agenturl + '/current',
+           type: 'GET',
+           success : function(response) {
+             response = JSON.parse(response);
+               if (callback) {
+                 callback(response);
+               }
+           }
+         });
+      }
 
-        function update() {
-          $.ajax({
-            url : agenturl + '/update',
-            type: 'POST',
-            data: JSON.stringify({ 'action' : 'update' }),
-            success : function(response) {
-              getState(updateReadout);
-            }
-          });
-        }
-
-        function reboot() {
-          $.ajax({
-            url : agenturl + '/update',
-            type: 'POST',
-            data: JSON.stringify({ 'action' : 'reboot' }),
-            success : function(response) {
-              getState(updateReadout);
-            }
-          });
-        }
-
-        function setangle() {
-          var s;
-          var r = document.getElementsByName('angle');
-          for (var i = 0, length = r.length ; i < length ; i++) {
-            if (r[i].checked) {
-              s = i;
-              break;
-            }
+      function update() {
+        // Trigger a forecast update
+        $.ajax({
+          url : agenturl + '/update',
+          type: 'POST',
+          data: JSON.stringify({ 'action' : 'update' }),
+          success : function(response) {
+            getState(updateReadout);
           }
+        });
+      }
 
-          if (s == 1) {
-            s = 90;
-          } else if (s == 2) {
-            s = 180;
-          } else if (s == 3) {
-            s = 270;
+      function reboot() {
+        // Trigger a device restart
+        $.ajax({
+          url : agenturl + '/update',
+          type: 'POST',
+          data: JSON.stringify({ 'action' : 'reboot' }),
+          success : function(response) {
+            getState(updateReadout);
           }
+        });
+      }
 
-          $.ajax({
-            url : agenturl + '/settings',
-            type: 'POST',
-            data: JSON.stringify({ 'angle' : s }),
-          });
+      function setangle() {
+        // Set the device screen angle
+        var s;
+        var r = document.getElementsByName('angle');
+        for (var i = 0, length = r.length ; i < length ; i++) {
+          if (r[i].checked) {
+            s = i;
+            break;
+          }
         }
 
-        function setbright() {
-          $.ajax({
-            url : agenturl + '/settings',
-            type: 'POST',
-            data: JSON.stringify({ 'bright' : $('[name=brightness]').val() })
-          });
+        // Set the correct angle based on the button checked
+        if (s == 1) {
+          s = 90;
+        } else if (s == 2) {
+          s = 180;
+        } else if (s == 3) {
+          s = 270;
         }
 
-        function setdebug() {
-            $.ajax({
-            url : agenturl + '/debug',
-            type: 'POST',
-            data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
-          });
-        }
+        $.ajax({
+          url : agenturl + '/settings',
+          type: 'POST',
+          data: JSON.stringify({ 'angle' : s }),
+        });
+      }
 
-      </script>
-    </body>
-  </html>
-";
+      function setbright() {
+        // Set the device screen brightness
+        $.ajax({
+          url : agenturl + '/settings',
+          type: 'POST',
+          data: JSON.stringify({ 'bright' : $('[name=brightness]').val() })
+        });
+      }
+
+      function setdebug() {
+        // Tell the device to enter or leave debug mode
+        $.ajax({
+          url : agenturl + '/debug',
+          type: 'POST',
+          data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
+        });
+      }
+
+    </script>
+  </body>
+</html>";
 
 // GLOCAL VARIABlES
 
@@ -308,7 +311,6 @@ function forecastCallback(err, data) {
 
     // Tell the agent get the next forecast in 'refreshTime' seconds time
     if (weatherTimer) imp.cancelwakeup(weatherTimer);
-
     weatherTimer = imp.wakeup(refreshTime, function(){
         sendForecast(true);
     });
@@ -342,7 +344,7 @@ function locationLookup(dummy) {
         }
     });
 
-    deviceSyncFlag;
+    deviceSyncFlag = true;
 }
 
 // SETTINGS FUNCTIONS
@@ -412,7 +414,7 @@ api = Rocky();
 
 // GET at / returns the UI
 api.get("/", function(context) {
-    context.send(200, format(htmlString, http.agenturl()));
+context.send(200, format(htmlString, http.agenturl()));
 });
 
 // GET at /current returns the current forecast as JSON:
@@ -447,7 +449,6 @@ api.get("/current", function(context) {
 api.post("/update", function(context) {
     try {
         local data = http.jsondecode(context.req.rawbody);
-
         if ("action" in data) {
             if (data.action == "update") {
                 sendForecast(true);
@@ -464,11 +465,13 @@ api.post("/update", function(context) {
     context.send(200, "OK");
 });
 
+// POST at /settings updates the passed setting(s)
+// passed to the endpoint:
+// { "angle" : <0-270>,
+//   "bright" : <0-15>  }
 api.post("/settings", function(context) {
-    // Apply setting for data from /dimmer endpoint
     try {
         local data = http.jsondecode(context.req.rawbody);
-
         if ("angle" in data) {
             local a = data.angle.tointeger();
             if (debug) server.log("Display angle changed to " + a);
@@ -493,10 +496,12 @@ api.post("/settings", function(context) {
     if (r != 0) server.error("Could not save settings (code: " + r + ")");
 });
 
+// POST at /debug updates the passed setting(s)
+// passed to the endpoint:
+// { "debug" : <true/false> }
 api.post("/debug", function(context) {
     try {
         local data = http.jsondecode(context.req.rawbody);
-
         if ("debug" in data) {
             debug = data.debug;
             if (debug) {
