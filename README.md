@@ -38,4 +38,4 @@ Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform
 
 ## Licence
 
-The Weather design and software is copyright 2014-16 Tony Smith and made available under the [MIT Licence](./LICENSE).
+The Weather design and software is copyright 2014-17 Tony Smith and made available under the [MIT Licence](./LICENSE).
