@@ -28,7 +28,7 @@ const htmlString = @"<!DOCTYPE html>
           <h4 class='temp-status' align='center'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
           <h4 class='outlook-status' align='center'>Outlook: <span></span></h4>
           <p class='location-status' align='center'>Location: <span></span></p>
-          <p>Forecast updates automatically every two minutes</p>
+          <p align='center'>Forecast updates automatically every two minutes</p>
           <p class='error-message' align='center'><i><span></span></i></p>
         </div>
         <br>
@@ -70,7 +70,7 @@ const htmlString = @"<!DOCTYPE html>
             </tr>
           </table>
         </div>
-        <p class='text-center'>&nbsp;<br>&nbsp;<small>Weather Monitor copyright &copy; Tony Smith, 2016-17</small><br>&nbsp;</p>
+        <p class='text-center'>&nbsp;<br>&nbsp;<small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;</p>
       </div>
     </div>
 
@@ -87,11 +87,17 @@ const htmlString = @"<!DOCTYPE html>
       $('input:checkbox[name=debug]').click(setdebug);
 
       var slider = document.getElementById('brightness');
+      $('.brightness-status span').text(slider.value);
+
       slider.addEventListener('mouseup', function() {
-        $('.brightness-status span').text(ri.value);
+        $('.brightness-status span').text(slider.value);
         setbright();
       });
-      $('.brightness-status span').text(slider.value);
+
+      slider.addEventListener('touchend', function() {
+        $('.brightness-status span').text(slider.value);
+        setbright();
+      });
 
       function updateReadout(data) {
         if (data.error) {
