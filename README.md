@@ -2,6 +2,8 @@
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
+![Weather Monitor](wm.jpg)
+
 ## Hardware
 
 ### Ingredients

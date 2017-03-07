@@ -77,6 +77,7 @@ const htmlString = @"
       <script>
         var agenturl = '%s';
         getState(updateReadout);
+
         $('.update-button button').on('click', update);
         $('.reboot-button button').on('click', reboot);
         $('.reboot-button button').on('click', reboot);
