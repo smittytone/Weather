@@ -10,34 +10,42 @@
 // CONSTANTS
 
 const refreshTime = 900;
-const htmlString = @"<!DOCTYPE html>
+const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
   <head>
     <title>Weather Monitor</title>
     <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
-    <meta name='viewport' content='width=device-width, height=device-height, initial-scale=1.0'>
+    <link href='//fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
+    <link href='//fonts.googleapis.com/css?family=Oswald' rel='stylesheet'><meta name='viewport' content='width=device-width, height=device-height, initial-scale=1.0'>
     <style>
       .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
+      body {background-color: #b30000;}
+      p {color: white; font-family: Abel}
+      h2 {color: #ffcc00; font-family: Abel; font-weight:bold}
+      h4 {color: white; font-family: Abel}
+      td {color: white; font-family: Abel}
+      hr {border-color: #ffcc00}
+      .error-message {color:#ffcc00}
     </style>
   </head>
   <body>
     <div class='container' style='padding: 20px'>
-      <div class='container' style='border: 2px solid gray'>
+      <div class='container' style='border: 2px solid #ff9900'>
         <h2 class='text-center'>Weather Monitor <span></span><br>&nbsp;</h2>
         <div class='current-status'>
           <h4 class='temp-status' align='center'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
-          <h4 class='outlook-status' align='center'>Outlook: <span></span></h4>
-          <p class='location-status' align='center'>Location: <span></span></p>
+          <h4 class='outlook-status' align='center'>Current Outlook: <span></span></h4>
+          <p class='location-status' align='center'>Device Location: <span></span></p>
           <p align='center'>Forecast updates automatically every two minutes</p>
           <p class='error-message' align='center'><i><span></span></i></p>
         </div>
         <br>
         <div class='controls' align='center'>
           <form id='button-form'>
-            <div class='update-button'>
+            <div class='update-button' style='color:dimGrey;font-family:Abel'>
               <button type='submit' id='updater' style='height:32px;width:200px'>Update Monitor</button><br>&nbsp;
             </div>
-            <div class='reboot-button'>
+            <div class='reboot-button' style='color:dimGrey;font-family:Abel'>
               <button type='submit' id='rebooter' style='height:32px;width:200px'>Restart Monitor</button><br>&nbsp;
             </div>
           </form>
@@ -61,7 +69,7 @@ const htmlString = @"<!DOCTYPE html>
                   <input type='range' name='brightness' id='brightness' value='15' min='0' max='15'>
                 </div>
                 <hr>
-                <div class='debug-checkbox'>
+                <div class='debug-checkbox' style='color:white;font-family:Abel'>
                   <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
                 </div>
               </form>
@@ -70,7 +78,7 @@ const htmlString = @"<!DOCTYPE html>
             </tr>
           </table>
         </div>
-        <p class='text-center'>&nbsp;<br>&nbsp;<small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;</p>
+        <p class='text-center' style='font-family:Oswald'>&nbsp;<br>&nbsp;<small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><img src='https://dl.dropboxusercontent.com/u/3470182/rassilon.png' width='32' height='32'></p>
       </div>
     </div>
 
