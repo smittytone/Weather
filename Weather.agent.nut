@@ -65,8 +65,9 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                   <input type='radio' name='angle' value='270'> 270&deg;
                 </div>
                 <div class='slider'>
-                  <p class='brightness-status'>&nbsp;<br><b>Brightness</b> <span></span></p>
+                  <p class='brightness-status'>&nbsp;<br><b>Brightness</b></p>
                   <input type='range' name='brightness' id='brightness' value='15' min='0' max='15'>
+                  <p class='brightness-status' align='right'><span></span></p>
                 </div>
                 <hr>
                 <div class='debug-checkbox' style='color:white;font-family:Abel'>
@@ -78,7 +79,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             </tr>
           </table>
         </div>
-        <p class='text-center' style='font-family:Oswald'>&nbsp;<br>&nbsp;<small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><img src='https://dl.dropboxusercontent.com/u/3470182/rassilon.png' width='32' height='32'></p>
+        <p class='text-center' style='font-family:Oswald'><small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><img src='https://dl.dropboxusercontent.com/u/3470182/rassilon.png' width='32' height='32'></p>
       </div>
     </div>
 
