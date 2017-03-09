@@ -10,8 +10,8 @@ server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 // CONSTANTS
 
-const initialAngle = 270;
-const reconnectTime = 900;
+const INITIAL_ANGLE = 270;
+const RECONNECT_TIME = 900;
 
 // GLOBAL VARIABLES
 
@@ -24,7 +24,7 @@ local localTemp = null;
 
 local iconset = {};
 local disData = "";
-local angle = initialAngle;
+local angle = INITIAL_ANGLE;
 local bright = 0;
 local shownDisMessage = false;
 local debug = false;
@@ -153,8 +153,8 @@ function displayWeather(data) {
 
 function disHandler(reason) {
     if (reason != SERVER_CONNECTED) {
-        // Try to reconnect in 'reconnectTime' seconds
-        imp.wakeup(reconnectTime, retry);
+        // Try to reconnect in 'RECONNECT_TIME' seconds
+        imp.wakeup(RECONNECT_TIME, retry);
         disData = "Disconnected at " + setTimeString() + ". Reason code: " + reason.tostring() + "\n";
 
         if (!shownDisMessage) {

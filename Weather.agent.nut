@@ -9,7 +9,7 @@
 
 // CONSTANTS
 
-const refreshTime = 900;
+const REFRESH_TIME = 900;
 const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
   <head>
@@ -324,9 +324,9 @@ function forecastCallback(err, data) {
         }
     });
 
-    // Tell the agent get the next forecast in 'refreshTime' seconds time
+    // Tell the agent get the next forecast in 'REFRESH_TIME' seconds time
     if (weatherTimer) imp.cancelwakeup(weatherTimer);
-    weatherTimer = imp.wakeup(refreshTime, function(){
+    weatherTimer = imp.wakeup(REFRESH_TIME, function(){
         sendForecast(true);
     });
 }
