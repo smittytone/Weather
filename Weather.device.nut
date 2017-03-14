@@ -188,7 +188,11 @@ function disHandler(reason) {
 
 function retry() {
     // If we're not connected, attempt to re-connect
-    if (!server.isconnected()) server.connect(disHandler);
+    if (!server.isconnected()) {
+        server.connect(disHandler);
+    } else {
+        disHandler(SERVER_CONNECTED);
+    }
 }
 
 function logWokenReason() {
