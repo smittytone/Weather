@@ -80,34 +80,34 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             </tr>
           </table>
         </div>
-        <p class='text-center' style='font-family:Oswald'><small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><img src='https://dl.dropboxusercontent.com/u/3470182/rassilon.png' width='32' height='32'></p>
+        <p class='text-center' style='font-family:Oswald'><small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><img src='https://smittytone.github.io/rassilon.png' width='32' height='32'></p>
       </div>
     </div>
 
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
     <script>
+      // Variables
       var agenturl = '%s';
+
       // Get initial readings
       getState(updateReadout);
 
       // Set UI click actions
-      $('.update-button button').on('click', update);
-      $('.reboot-button button').on('click', reboot);
-      $('input:radio[name=angle]').click(setangle);
-      $('input:checkbox[name=debug]').click(setdebug);
+      $('.update-button button').click(update);
+      $('.reboot-button button').click(reboot);
+      $('#angle').click(setangle);
+      $('#debug').click(setdebug);
 
       var slider = document.getElementById('brightness');
       $('.brightness-status span').text(slider.value);
+      slider.addEventListener('mouseup', updateSlider);
+      slider.addEventListener('touchend', updateSlider);
 
-      slider.addEventListener('mouseup', function() {
-        $('.brightness-status span').text(slider.value);
+      // Functions
+      function updateSlider() {
+        $('.brightness-status span').text($('#brightness').val());
         setbright();
-      });
-
-      slider.addEventListener('touchend', function() {
-        $('.brightness-status span').text(slider.value);
-        setbright();
-      });
+      }
 
       function updateReadout(data) {
         if (data.error) {
@@ -125,7 +125,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             }
           });
 
-           $('[name=brightness]').val(data.bright);
+           $('#brightness').val(data.bright);
            $('.brightness-status span').text(data.bright);
 
            document.getElementById('debug').checked = data.debug;
@@ -206,7 +206,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
         $.ajax({
           url : agenturl + '/settings',
           type: 'POST',
-          data: JSON.stringify({ 'bright' : $('[name=brightness]').val() })
+          data: JSON.stringify({ 'bright' : $('#brightness').val() })
         });
       }
 
