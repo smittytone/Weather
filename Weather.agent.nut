@@ -17,7 +17,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
     <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
     <link href='//fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
     <link href='//fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
-    <meta name='viewport' content='width=device-width, height=device-height, initial-scale=1.0'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <style>
       .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
       body {background-color: #b30000;}
@@ -31,7 +31,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
   </head>
   <body>
     <div class='container' style='padding: 20px'>
-      <div class='container' style='border: 2px solid #ff9900'>
+      <div style='border: 2px solid #ff9900'>
         <h2 class='text-center'>Weather Monitor <span></span><br>&nbsp;</h2>
         <div class='current-status'>
           <h4 class='temp-status' align='center'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
