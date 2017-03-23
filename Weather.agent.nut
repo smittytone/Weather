@@ -17,6 +17,8 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
     <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
     <link href='//fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
     <link href='//fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+    <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-weather.png'>
+    <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-weather.ico'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <style>
       .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
@@ -42,14 +44,12 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
         </div>
         <br>
         <div class='controls' align='center'>
-          <form id='button-form'>
             <div class='update-button' style='color:dimGrey;font-family:Abel'>
               <button type='submit' id='updater' style='height:32px;width:200px'>Update Monitor</button><br>&nbsp;
             </div>
             <div class='reboot-button' style='color:dimGrey;font-family:Abel'>
               <button type='submit' id='rebooter' style='height:32px;width:200px'>Restart Monitor</button><br>&nbsp;
             </div>
-          </form>
           <hr>
         </div>
         <div class='controls'>
@@ -57,7 +57,6 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             <tr>
               <td width='25%%'>&nbsp;</td>
               <td width='50%%'>
-              <form id='settings'>
                 <div class='angle-radio'>
                   <p><b>Display Angle</b></p>
                   <input type='radio' name='angle' value='0' checked> 0&deg;<br>
@@ -67,14 +66,15 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 </div>
                 <div class='slider'>
                   <p class='brightness-status'>&nbsp;<br><b>Brightness</b></p>
-                  <input type='range' name='brightness' id='brightness' value='15' min='0' max='15'>
-                  <p class='brightness-status' align='right'><span></span></p>
+                  <input type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
+                  <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
+                  <p class='brightness-status' align='right'>Brightness: <span></span></p>
                 </div>
                 <hr>
                 <div class='debug-checkbox' style='color:white;font-family:Abel'>
                   <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
                 </div>
-              </form>
+                <hr>
               </td>
               <td width='25%%'>&nbsp;</td>
             </tr>
