@@ -36,6 +36,12 @@ Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform
 6. Add these API keys to the agent code in the appropriate section.
 7. Cut and past the [Location library](https://github.com/smittytone/Location) code into both the agent and the device code.
 
+## Control
+
+The Weather Monitor has its own, web-based control UI, accessed at the agent URL.
+
+![Weather Station UI](grab01.png)
+
 ## Licence
 
 The Weather design and software is copyright 2014-17 Tony Smith and made available under the [MIT Licence](./LICENSE).
