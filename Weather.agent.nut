@@ -80,7 +80,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             </tr>
           </table>
         </div>
-        <p class='text-center' style='font-family:Oswald'><small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><a href='https://github.com/smittytone/Weather'><img src='https://smittytone.github.io/rassilon.png' width='32' height='32'></a></p>
+        <p class='text-center' style='font-family:Oswald'><small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><a href='https://github.com/smittytone/Weather' target='_new'><img src='https://smittytone.github.io/rassilon.png' width='32' height='32'></a></p>
       </div>
     </div>
 
