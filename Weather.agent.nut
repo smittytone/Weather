@@ -236,7 +236,7 @@ local api = null;
 local savedData = null;
 
 local appName = "";
-local appVersion = "3.2.";
+local appVersion = "3.3.";
 
 local myLongitude = -0.123038;
 local myLatitude = 51.568330;
