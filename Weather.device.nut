@@ -2,6 +2,7 @@
 // Copyright 2016-17, Tony Smith
 
 #require "ht16k33matrix.class.nut:1.2.0"
+#require "utilities.nut:1.0.0"
 
 #import "../Location/location.class.nut"
 
@@ -245,6 +246,9 @@ server.onshutdown(function(reason) {
 
 // Set up disconnection handler
 server.onunexpecteddisconnect(disHandler);
+
+// Debug info
+utilities.bootMessage();
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
