@@ -39,7 +39,6 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
           <h4 class='temp-status' align='center'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
           <h4 class='outlook-status' align='center'>Current Outlook: <span></span></h4>
           <p class='location-status' align='center'>Device Location: <span></span></p>
-          <p align='center'>Forecast updates automatically every two minutes</p>
           <p class='error-message' align='center'><i><span></span></i></p>
         </div>
         <br>
@@ -59,10 +58,10 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
               <td width='50%%'>
                 <div class='angle-radio'>
                   <p><b>Display Angle</b></p>
-                  <input type='radio' name='angle' value='0' checked> 0&deg;<br>
-                  <input type='radio' name='angle' value='90'> 90&deg;<br>
-                  <input type='radio' name='angle' value='180'> 180&deg;<br>
-                  <input type='radio' name='angle' value='270'> 270&deg;
+                  <input type='radio' name='angle' id='angle0' value='0' checked> 0&deg;<br>
+                  <input type='radio' name='angle' id='angle90' value='90'> 90&deg;<br>
+                  <input type='radio' name='angle' id='angle180' value='180'> 180&deg;<br>
+                  <input type='radio' name='angle' id='angle270' value='270'> 270&deg;
                 </div>
                 <div class='slider'>
                   <p class='brightness-status'>&nbsp;<br><b>Brightness</b></p>
@@ -80,7 +79,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             </tr>
           </table>
         </div>
-        <p class='text-center' style='font-family:Oswald'><small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><a href='https://github.com/smittytone/Weather' target='_new'><img src='https://smittytone.github.io/rassilon.png' width='32' height='32'></a></p>
+        <p class='text-center' style='font-family:Oswald'><small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><a href='https://github.com/smittytone/Weather' target='_new'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
       </div>
     </div>
 
@@ -89,13 +88,19 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
       // Variables
       var agenturl = '%s';
 
+      // Set initial error message
+      $('.error-message span').text('Forecast updates automatically every two minutes');
+
       // Get initial readings
       getState(updateReadout);
 
       // Set UI click actions
       $('.update-button button').click(update);
       $('.reboot-button button').click(reboot);
-      $('#angle').click(setangle);
+      $('#angle0').click(setangle);
+      $('#angle90').click(setangle);
+      $('#angle180').click(setangle);
+      $('#angle270').click(setangle);
       $('#debug').click(setdebug);
 
       var slider = document.getElementById('brightness');
@@ -116,7 +121,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
           $('.temp-status span').text(data.temp);
           $('.outlook-status span').text(data.cast);
           $('.location-status span').text(data.location.long + ', ' + data.location.lat);
-          $('.error-message span').text(' ');
+          $('.error-message span').text('Forecast updates automatically every two minutes');
           $('.text-center span').text(data.vers);
 
           $('[name=angle]').each(function(i, v) {
