@@ -15,8 +15,8 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
   <head>
     <title>Weather Monitor</title>
     <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
-    <link href='//fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
-    <link href='//fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
     <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-weather.png'>
     <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-weather.ico'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
