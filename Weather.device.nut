@@ -231,10 +231,7 @@ function setTimeString() {
     return (now.hour.tostring() + ":" + now.min.tostring() + ":" + now.sec.tostring);
 }
 
-// START PROGRAM
-
-// Set up impOS update notification
-server.onshutdown(function(reason) {
+function politeness(reason) {
     if (reason == SHUTDOWN_NEWFIRMWARE) {
         if (debug) server.log("New impOS release available - restarting in 1 minute");
         imp.wakeup(60, function() {
@@ -242,13 +239,26 @@ server.onshutdown(function(reason) {
             server.restart();
         }.bindenv(this));
     }
-});
+}
+
+function bootMessage() {
+    server.log(imp.getsoftwareversion());
+    local i = imp.net.info();
+    local w = i.interface[i.active];
+    local s = ("connectedssid" in w) ? w.connectedssid : w.ssid;
+    server.log("Connected by " + w.type + " on SSID \'" + s + "\' with IP address " + i.ipv4.address);
+}
+
+// START PROGRAM
+
+// Boot 'screen'
+bootMessage();
+
+// Set up impOS update notification
+server.onshutdown(politeness);
 
 // Set up disconnection handler
 server.onunexpecteddisconnect(disHandler);
-
-// Debug info
-utilities.bootMessage();
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);

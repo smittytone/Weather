@@ -4,6 +4,7 @@
 #require "DarkSky.class.nut:1.0.1"
 #require "BuildAPIAgent.class.nut:1.1.1"
 #require "Rocky.class.nut:2.0.0"
+#require "IFTTT.class.nut:1.0.0"
 
 #import "../Location/location.class.nut"
 
@@ -233,6 +234,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 local request = null;
 local weather = null;
 local locator = null;
+local mailer = null;
 local weatherTimer = null;
 local restartTimer = null;
 local build = null;
@@ -308,7 +310,11 @@ function forecastCallback(err, data) {
             }
         }
 
-        if (debug && "callCount" in data) server.log("Current Dark Sky API call tally: " + data.callCount + "/1000");
+        if ("callCount" in data) {
+            // Send an event to IFTTT to trigger a warning email, if necessary
+            if (data.callCount > 950) mailer.sendEvent("darksky_warning", [data.callCount, "out of", 1000]);
+            if (debug) server.log("Current Dark Sky API call tally: " + data.callCount + "/1000");
+        }
     }
 
     // Get the indoors temperature from the sensor agent
@@ -377,14 +383,14 @@ function getSettings(dummy) {
 
 // START PROGRAM
 
-// If you are not using Squinter, uncomment the following lines
-// and add your API keys:
+// If you are NOT using Squinter, uncomment these lines and add your API keys...
 // weather = DarkSky("YOUR_API_KEY");
 // build = BuildAPIAccess("YOUR_BUILD_API_KEY");
 // locator = Location("YOUR_API_KEY", debug);
+// mailer = IFTTT("YOUR_APPLET_ID");
 // agent <- "YOUR ENV TAIL AGENT URL";
 
-// If you are not using Squinter, omment out the following line:
+// ...and comment out the following line:
 #import "~/Dropbox/Programming/Imp/Codes/weather.nut"
 
 // Populate name, version info
