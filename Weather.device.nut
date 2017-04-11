@@ -2,7 +2,6 @@
 // Copyright 2016-17, Tony Smith
 
 #require "ht16k33matrix.class.nut:1.2.0"
-#require "utilities.nut:1.0.0"
 
 #import "../Location/location.class.nut"
 
@@ -301,11 +300,6 @@ agent.on("weather.set.local.temp", function(temp) {
 agent.on("weather.set.debug", function(value) {
     // The user has told the device to enable or disable debugging messages
     debug = value;
-});
-
-agent.on("weather.set.build", function(version) {
-    // The agent has sent the software build number to display
-    led.displayLine("     Weather " + version);
 });
 
 agent.on("weather.set.angle", function(a) {

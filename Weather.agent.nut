@@ -2,7 +2,6 @@
 // Copyright 2016-17, Tony Smith
 
 #require "DarkSky.class.nut:1.0.1"
-#require "BuildAPIAgent.class.nut:1.1.1"
 #require "Rocky.class.nut:2.0.0"
 #require "IFTTT.class.nut:1.0.0"
 
@@ -35,7 +34,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
   <body>
     <div class='container' style='padding: 20px'>
       <div style='border: 2px solid #ff9900'>
-        <h2 class='text-center'>Weather Monitor <span></span><br>&nbsp;</h2>
+        <h2 class='text-center'>Weather Monitor<br>&nbsp;</h2>
         <div class='current-status'>
           <h4 class='temp-status' align='center'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
           <h4 class='outlook-status' align='center'>Current Outlook: <span></span></h4>
@@ -123,7 +122,6 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
           $('.outlook-status span').text(data.cast);
           $('.location-status span').text(data.location.long + ', ' + data.location.lat);
           $('.error-message span').text('Forecast updates automatically every two minutes');
-          $('.text-center span').text(data.vers);
 
           $('[name=angle]').each(function(i, v) {
             if (data.angle == $(this).val()) {
@@ -237,13 +235,9 @@ local locator = null;
 local mailer = null;
 local weatherTimer = null;
 local restartTimer = null;
-local build = null;
 local settings = null;
 local api = null;
 local savedData = null;
-
-local appName = "";
-local appVersion = "3.3.";
 
 local myLongitude = -0.123038;
 local myLatitude = 51.568330;
@@ -378,36 +372,18 @@ function locationLookup(dummy) {
 
 function getSettings(dummy) {
     device.send("weather.set.settings", settings);
-    device.send("weather.set.build", appVersion);
 }
 
 // START PROGRAM
 
 // If you are NOT using Squinter, uncomment these lines and add your API keys...
 // weather = DarkSky("YOUR_API_KEY");
-// build = BuildAPIAccess("YOUR_BUILD_API_KEY");
 // locator = Location("YOUR_API_KEY", debug);
 // mailer = IFTTT("YOUR_APPLET_ID");
 // agent <- "YOUR ENV TAIL AGENT URL";
 
 // ...and comment out the following line:
 #import "~/Dropbox/Programming/Imp/Codes/weather.nut"
-
-// Populate name, version info
-build.getModelName(imp.configparams.deviceid, function(err, data) {
-    if (err) {
-        server.error(err);
-    } else {
-        appName = data;
-        build.getLatestBuildNumber(appName, function(err, data) {
-            if (err) {
-                server.error(err);
-            } else {
-                appVersion = appVersion + data;
-            }
-        }.bindenv(this));
-    }
-}.bindenv(this));
 
 // Specify UK units for all forecasts, ie. temperatures in Celsius
 weather.setUnits("uk");
@@ -463,7 +439,6 @@ api.get("/current", function(context) {
     data.angle <- settings.angle.tostring();
     data.bright <- settings.bright;
     data.debug <- settings.debug;
-    data.vers <- appVersion.slice(0, 3);
     data = http.jsonencode(data);
     context.send(200, data);
 });
