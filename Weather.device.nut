@@ -1,9 +1,9 @@
 // Weather Monitor
 // Copyright 2016-17, Tony Smith
 
-#require "ht16k33matrix.class.nut:1.2.0"
-
 #import "../Location/location.class.nut"
+
+#import "../HT16K33Matrix/ht16k33matrix.class.nut"
 
 // Set up connectivity policy — this should come as early in the code as possible
 server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
