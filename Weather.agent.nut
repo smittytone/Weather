@@ -10,6 +10,7 @@
 // CONSTANTS
 
 const REFRESH_TIME = 900;
+const AGENT_START_TIME = 120;
 const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
   <head>
@@ -526,15 +527,17 @@ api.post("/debug", function(context) {
     context.send(200, (debug ? "Debug on" : "Debug off"));
 });
 
-// In five minutes' time, check if the device has not synced (as far as
+// In 'AGENT_START_TIME' seconds, check if the device has not synced (as far as
 // the agent knows) and is connected, ie. we have probably experienced
 // an unexpected agent restart. If so, do a location lookup as if asked
 // by a newly starting device
-restartTimer = imp.wakeup(300, function() {
+restartTimer = imp.wakeup(AGENT_START_TIME, function() {
     if (!deviceSyncFlag) {
         if (device.isconnected()) {
             if (debug) server.log("Reacquiring location due to agent restart");
             locationLookup(true);
+        } else {
+            if (debug) server.log("Agent restarted, but device not online");
         }
     }
 });

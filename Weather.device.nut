@@ -352,6 +352,7 @@ agent.on("weather.set.reboot", function(dummy) {
 // Splash screen animation
 intro();
 outro();
+logWokenReason();
 
 // At this point, the device will wait for a forecast from the agent.
 // It will display this when it receives it.
@@ -363,5 +364,4 @@ if (!server.isconnected()) {
     // Tell the agent that the device is ready
     agent.send("weather.get.settings", true);
     agent.send("weather.get.location", true);
-    logWokenReason();
 }
