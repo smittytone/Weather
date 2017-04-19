@@ -246,6 +246,7 @@ local locationTime = -1;
 
 local deviceSyncFlag = false;
 local debug = false;
+local clearSettings = false;
 
 // FORECAST FUNCTIONS
 
@@ -389,14 +390,17 @@ function getSettings(dummy) {
 // Specify UK units for all forecasts, ie. temperatures in Celsius
 weather.setUnits("uk");
 
+// Clear settings if required
+if (clearSettings) server.save({});
+
 // Set up settings record
 local loadedSettings = server.load();
 
 if (loadedSettings.len() == 0) {
     // No saved data, so save defaults
     settings = {};
-    settings.angle <- 3;
-    settings.bright <- 0;
+    settings.angle <- 0;
+    settings.bright <- 15;
     settings.debug <- false;
     server.save(settings);
 } else {
