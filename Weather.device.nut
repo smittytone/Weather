@@ -1,9 +1,9 @@
 // Weather Monitor
 // Copyright 2016-17, Tony Smith
 
-#require "ht16k33matrix.class.nut:1.2.0"
-
 #import "../Location/location.class.nut"
+
+#import "../HT16K33Matrix/ht16k33matrix.class.nut"
 
 // Set up connectivity policy — this should come as early in the code as possible
 server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
@@ -352,6 +352,7 @@ agent.on("weather.set.reboot", function(dummy) {
 // Splash screen animation
 intro();
 outro();
+logWokenReason();
 
 // At this point, the device will wait for a forecast from the agent.
 // It will display this when it receives it.
@@ -363,5 +364,4 @@ if (!server.isconnected()) {
     // Tell the agent that the device is ready
     agent.send("weather.get.settings", true);
     agent.send("weather.get.location", true);
-    logWokenReason();
 }
