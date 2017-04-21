@@ -13,79 +13,106 @@ const REFRESH_TIME = 900;
 const AGENT_START_TIME = 120;
 const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
-  <head>
-    <title>Weather Monitor</title>
-    <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
-    <link href='https://fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
-    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
-    <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-weather.png'>
-    <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-weather.ico'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <style>
-      .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
-      body {background-color: #b30000;}
-      p {color: white; font-family: Abel}
-      h2 {color: #ffcc00; font-family: Abel; font-weight:bold}
-      h4 {color: white; font-family: Abel}
-      td {color: white; font-family: Abel}
-      hr {border-color: #ffcc00}
-      .error-message {color:#ffcc00}
-    </style>
-  </head>
-  <body>
-    <div class='container' style='padding: 20px'>
-      <div style='border: 2px solid #ff9900'>
-        <h2 class='text-center'>Weather Monitor<br>&nbsp;</h2>
-        <div class='current-status'>
-          <h4 class='temp-status' align='center'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
-          <h4 class='outlook-status' align='center'>Current Outlook: <span></span></h4>
-          <p class='location-status' align='center'>Device Location: <span></span></p>
-          <p class='error-message' align='center'><i><span></span></i></p>
-        </div>
-        <br>
-        <div class='controls' align='center'>
-            <div class='update-button' style='color:dimGrey;font-family:Abel'>
-              <button type='submit' id='updater' style='height:32px;width:200px'>Update Monitor</button><br>&nbsp;
+    <head>
+        <title>Weather Monitor</title>
+        <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
+        <link href='https://fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
+        <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-weather.png'>
+        <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-weather.ico'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <style>
+            .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
+            body {background-color: #b30000;}
+            p {color: white; font-family: Abel; font-size: 18px}
+            p.error-message {color:#ffcc00; font-size: 16px}
+            p.colophon {font-size: 14px; text-align: center}
+            h2 {color: #ffcc00; font-family: Abel; font-weight:bold; font-size: 36px}
+            h4 {color: white; font-family: Abel; font-size: 22px}
+            p.showhide {cursor: pointer}
+            td {color: white; font-family: Abel}
+            hr {border-color: #ffcc00}
+        </style>
+    </head>
+    <body>
+        <div class='container' style='padding: 20px'>
+            <div style='border: 2px solid #ff9900'>
+                <h2 class='text-center'>Weather Monitor<br>&nbsp;</h2>
+                <div class='current-status'>
+                    <h4 class='temp-status' align='center'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
+                    <h4 class='outlook-status' align='center'>Current Outlook: <span></span></h4>
+                    <p class='location-status' align='center'>Device Location: <span></span></p>
+                    <p class='error-message' align='center'><i><span></span></i></p>
+                </div>
+                <br>
+                <div class='controls' align='center'>
+                    <table width='100%%'>
+                        <tr>
+                            <td width='25%%' align='center'>&nbsp;</td>
+                            <td width='25%%' align='left'>
+                                <div class='update-button' style='color:dimGrey;font-family:Abel'>
+                                    <button type='submit' id='updater' style='height:32px;width:200px'>Update Monitor</button><br>&nbsp;
+                                </div>
+                            </td>
+                            <td width='25%%' align='right'>
+                                <div class='reboot-button' style='color:dimGrey;font-family:Abel'>
+                                    <button type='submit' id='rebooter' style='height:32px;width:200px'>Restart Monitor</button><br>&nbsp;
+                                </div>
+                            </td>
+                            <td width='25%%' align='center'>&nbsp;</td>
+                        </tr>
+                    </table>
+                    <hr>
+                </div>
+                <div class='controls'>
+                    <table width='100%%'>
+                        <tr>
+                            <td width='25%%'>&nbsp;</td>
+                            <td width='50%%'>
+                                <div class='settings' style='background-color:#a30000'>
+                                    <p align='center'>Settings</p>
+                                </div>
+                                <div class='angle-radio'>
+                                    <p>Display Angle</p>
+                                    <input type='radio' name='angle' id='angle0' value='0' checked> 0&deg;<br>
+                                    <input type='radio' name='angle' id='angle90' value='90'> 90&deg;<br>
+                                    <input type='radio' name='angle' id='angle180' value='180'> 180&deg;<br>
+                                    <input type='radio' name='angle' id='angle270' value='270'> 270&deg;
+                                </div>
+                                <hr>
+                                <div class='slider'>
+                                    <p class='brightness-status'>&nbsp;<br>Brightness</p>
+                                    <input type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
+                                    <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
+                                    <p class='brightness-status' align='right'>Brightness: <span></span></p>
+                                </div>
+                                <hr>
+                                <div class='advancedsettings' style='background-color:#a30000'>
+                                    <p class='showhide' align='center'>Click for Advanced Settings</p>
+                                    <div class='advanced' align='center' style='background-color:#b30000'>
+                                        <br>
+                                        <div class='debug-checkbox' style='color:white;font-family:Abel'>
+                                            <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
+                                        </div>
+                                        <br>
+                                        <div class='reset-button' style='color:dimGrey;font-family:Abel'>
+                                            <button type='submit' id='resetter' style='height:32px;width:200px'>Reset Monitor</button><br>&nbsp;
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td width='25%%'>&nbsp;</td>
+                        </tr>
+                    </table>
+                    <hr>
+                </div>
+                <p class='colophon'>Weather Monitor copyright &copy; Tony Smith, 2014-17<br>&nbsp;<br><a href='https://github.com/smittytone/Weather' target='_new'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
             </div>
-            <div class='reboot-button' style='color:dimGrey;font-family:Abel'>
-              <button type='submit' id='rebooter' style='height:32px;width:200px'>Restart Monitor</button><br>&nbsp;
-            </div>
-          <hr>
         </div>
-        <div class='controls'>
-          <table width='100%%'>
-            <tr>
-              <td width='25%%'>&nbsp;</td>
-              <td width='50%%'>
-                <div class='angle-radio'>
-                  <p><b>Display Angle</b></p>
-                  <input type='radio' name='angle' id='angle0' value='0' checked> 0&deg;<br>
-                  <input type='radio' name='angle' id='angle90' value='90'> 90&deg;<br>
-                  <input type='radio' name='angle' id='angle180' value='180'> 180&deg;<br>
-                  <input type='radio' name='angle' id='angle270' value='270'> 270&deg;
-                </div>
-                <div class='slider'>
-                  <p class='brightness-status'>&nbsp;<br><b>Brightness</b></p>
-                  <input type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
-                  <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
-                  <p class='brightness-status' align='right'>Brightness: <span></span></p>
-                </div>
-                <hr>
-                <div class='debug-checkbox' style='color:white;font-family:Abel'>
-                  <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
-                </div>
-                <hr>
-              </td>
-              <td width='25%%'>&nbsp;</td>
-            </tr>
-          </table>
-        </div>
-        <p class='text-center' style='font-family:Oswald'><small>Weather Monitor copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><a href='https://github.com/smittytone/Weather' target='_new'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
-      </div>
-    </div>
 
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
     <script>
+      $('.advanced').hide();
+
       // Variables
       var agenturl = '%s';
 
@@ -98,6 +125,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
       // Set UI click actions
       $('.update-button button').click(update);
       $('.reboot-button button').click(reboot);
+      $('.reset-button button').click(reset);
       $('#angle0').click(setangle);
       $('#angle90').click(setangle);
       $('#angle180').click(setangle);
@@ -108,6 +136,10 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
       $('.brightness-status span').text(slider.value);
       slider.addEventListener('mouseup', updateSlider);
       slider.addEventListener('touchend', updateSlider);
+
+      $('.showhide').click(function(){
+            $('.advanced').toggle();
+      });
 
       // Functions
       function updateSlider() {
@@ -179,6 +211,17 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
         });
       }
 
+      function reset() {
+        // Trigger a device reset
+        $.ajax({
+          url : agenturl + '/update',
+          type: 'POST',
+          data: JSON.stringify({ 'action' : 'reset' }),
+          success : function(response) {
+            getState(updateReadout);
+          }
+        });
+      }
       function setangle() {
         // Set the device screen angle
         var s;
@@ -376,6 +419,15 @@ function getSettings(dummy) {
     device.send("weather.set.settings", settings);
 }
 
+function reset() {
+    if (debug) server.log("Clearing settings to default values");
+    settings = {};
+    settings.angle <- 0;
+    settings.bright <- 15;
+    settings.debug <- false;
+    server.save(settings);
+}
+
 // START PROGRAM
 
 // If you are NOT using Squinter, uncomment these lines and add your API keys...
@@ -460,6 +512,13 @@ api.post("/update", function(context) {
             if (data.action == "update") {
                 sendForecast(true);
             } else if (data.action == "reboot") {
+                if (debug) server.log("Restarting Device");
+                device.send("weather.set.reboot", true);
+            } else if (data.action == "reset") {
+                // Clear and reset the settings, then
+                // reboot the device to apply them
+                reset();
+                if (debug) server.log("Restarting Device");
                 device.send("weather.set.reboot", true);
             }
         }
