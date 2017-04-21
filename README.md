@@ -1,4 +1,4 @@
-# Weather 3.4
+# Weather 3.5
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
