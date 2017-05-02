@@ -155,7 +155,7 @@ function disHandler(reason) {
     if (reason != SERVER_CONNECTED) {
         // Try to reconnect in 'RECONNECT_TIME' seconds
         imp.wakeup(RECONNECT_TIME, retry);
-        disData = "Disconnected at " + setTimeString() + ". Reason code: " + reason.tostring() + "\n";
+        if (disData.len() == 0) disData = "Disconnected at " + setTimeString() + ". Reason code: " + reason.tostring() + "\n";
 
         if (!shownDisMessage) {
             // Device is disconnected so signal this to the user
@@ -178,10 +178,7 @@ function disHandler(reason) {
         // Device is connected again, so update the display
         shownDisMessage = false;
         agent.send("weather.get.location", true);
-        logWokenReason();
-
-        disData = disData + "Reconnected at: " + setTimeString();
-        if (debug) server.log(disData);
+        if (debug) server.log(disData + "Reconnected at: " + setTimeString());
         disData = "";
     }
 }
@@ -197,9 +194,11 @@ function retry() {
 
 function logWokenReason() {
     // For debugging, log the reason the imp restarted
+    local s = "";
+
     if (debug) {
         local c = hardware.wakereason();
-        local s = "Device restarted. Reason: ";
+        s = "Device restarted. Reason: ";
         switch (c) {
             case 0:
                 s = s + "Cold boot";
@@ -219,10 +218,9 @@ function logWokenReason() {
             default:
                 s = s + "Device restarted for some reason (code: " + c + ")";
         }
-
-        server.log(imp.getsoftwareversion());
-        server.log(s);
     }
+
+    return s;
 }
 
 function setTimeString() {
@@ -241,11 +239,14 @@ function politeness(reason) {
 }
 
 function bootMessage() {
-    server.log(imp.getsoftwareversion());
+    local a = split(imp.getsoftwareversion(), "-");
+    server.log("impOS version " + a[2]);
     local i = imp.net.info();
     local w = i.interface[i.active];
     local s = ("connectedssid" in w) ? w.connectedssid : w.ssid;
-    server.log("Connected by " + w.type + " on SSID \'" + s + "\' with IP address " + i.ipv4.address);
+    local t = (w.type == "wifi") ? "Connected by WiFi on SSID \"" + s + "\"" : "Ethernet";
+    server.log(t + " with IP address " + i.ipv4.address);
+    server.log(logWokenReason());
 }
 
 // START PROGRAM
@@ -266,6 +267,10 @@ led.init(bright, angle);
 led.defineChar(0, [0x3C, 0x42, 0x95, 0xA1, 0xA1, 0x95, 0x42, 0x3C]);
 led.defineChar(1, [0x70, 0x18, 0x7D, 0xB6, 0xBE, 0x3E]);
 led.defineChar(2, [0xBE, 0xB6, 0x7D, 0x18, 0x70]);
+
+// Splash screen animation
+intro();
+outro();
 
 // Set up locator
 locator = Location(null, true);
@@ -348,11 +353,6 @@ agent.on("weather.set.reboot", function(dummy) {
     // The user has asked the device to reboot
     server.restart();
 });
-
-// Splash screen animation
-intro();
-outro();
-logWokenReason();
 
 // At this point, the device will wait for a forecast from the agent.
 // It will display this when it receives it.

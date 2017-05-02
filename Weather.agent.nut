@@ -294,6 +294,7 @@ local clearSettings = false;
 // FORECAST FUNCTIONS
 
 function sendForecast(dummy) {
+   if (debug) server.log("Requesting weather forecast data from Dark Sky");
     weather.forecastRequest(myLongitude, myLatitude, forecastCallback.bindenv(this));
 }
 
