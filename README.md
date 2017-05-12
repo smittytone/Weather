@@ -36,7 +36,10 @@ Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform
 
     `If maker Event "darksky_warning", then send me an email at <your registered email address>`
 6. Add these API keys to the agent code in the appropriate section.
-7. Cut and paste the [Location library](https://github.com/smittytone/Location) code into both the agent and the device code.
+7. Cut and paste the [Location library](https://github.com/smittytone/Location) code into both the agent and the device code &mdash; paste to replace the appropriate #import statement.
+8. Cut and paste the [HT16K33Matrix library](https://github.com/smittytone/HT16K33Matrix) code into the device code &mdash; paste to replace the appropriate #import statement.
+
+If you are using the macOS tool Squinter (download [here](https://electricimp.com/docs/attachments/squinter/squinter_1_0_119.zip)) to manage your Electric Imp projects, the the device code is set up to import and pre-process these files. You may need to change the #import statements to reflect the location of the libraries on your machine. Alternatively, you can simply paste in the contents of each file over the respective #import statement.
 
 ## Control
 
