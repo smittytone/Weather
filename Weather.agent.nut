@@ -21,14 +21,23 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
         <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-weather.ico'>
         <meta name='viewport' content='width=device-width, initial-scale=1.0'>
         <style>
-            .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
-            body {background-color: #b30000;}
+            .center { margin-left: auto;
+                      margin-right: auto;
+                      margin-bottom: auto;
+                      margin-top: auto; }
+            .showhide { -webkit-touch-callout: none;
+                        -webkit-user-select: none;
+                        -khtml-user-select: none;
+                        -moz-user-select: none;
+                        -ms-user-select: none;
+                        user-select: none;
+                        cursor: pointer }
+            body { background-color: #b30000; }
             p {color: white; font-family: Abel; font-size: 18px}
             p.error-message {color:#ffcc00; font-size: 16px}
             p.colophon {font-size: 14px; text-align: center}
             h2 {color: #ffcc00; font-family: Abel; font-weight:bold; font-size: 36px}
             h4 {color: white; font-family: Abel; font-size: 22px}
-            p.showhide {cursor: pointer}
             td {color: white; font-family: Abel}
             hr {border-color: #ffcc00}
         </style>
@@ -58,11 +67,6 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                             </td>
                             <td width='25%%'>&nbsp;</td>
                         </tr>
-                    </table>
-                    <hr>
-                </div>
-                <div class='controls'>
-                    <table width='100%%'>
                         <tr>
                             <td width='25%%'>&nbsp;</td>
                             <td width='50%%'>
@@ -78,15 +82,14 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                 </div>
                                 <hr>
                                 <div class='slider'>
-                                    <p class='brightness-status'>&nbsp;<br>Brightness</p>
+                                    <p class='brightness-status'>Brightness</p>
                                     <input type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
                                     <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
                                     <p class='brightness-status' align='right'>Brightness: <span></span></p>
                                 </div>
-                                <hr>
                                 <div class='advancedsettings' style='background-color:#a30000'>
                                     <p class='showhide' align='center'>Click for Advanced Settings</p>
-                                    <div class='advanced' align='center' style='background-color:#b30000'>
+                                    <div class='advanced' align='center'>
                                         <br>
                                         <div class='debug-checkbox' style='color:white;font-family:Abel'>
                                             <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
@@ -95,13 +98,13 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                         <div class='reset-button' style='color:dimGrey;font-family:Abel'>
                                             <button type='submit' id='resetter' style='height:32px;width:200px'>Reset Monitor</button><br>&nbsp;
                                         </div>
+                                        <hr>
                                     </div>
                                 </div>
                             </td>
                             <td width='25%%'>&nbsp;</td>
                         </tr>
                     </table>
-                    <hr>
                 </div>
                 <p class='colophon'>Weather Monitor copyright &copy; Tony Smith, 2014-17<br>&nbsp;<br><a href='https://github.com/smittytone/Weather' target='_new'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
             </div>
