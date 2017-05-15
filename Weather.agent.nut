@@ -47,18 +47,16 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 <div class='controls' align='center'>
                     <table width='100%%'>
                         <tr>
-                            <td width='25%%' align='center'>&nbsp;</td>
-                            <td width='25%%' align='left'>
+                            <td width='25%%'>&nbsp;</td>
+                            <td width='50%%' align='center'>
                                 <div class='update-button' style='color:dimGrey;font-family:Abel'>
                                     <button type='submit' id='updater' style='height:32px;width:200px'>Update Monitor</button><br>&nbsp;
                                 </div>
-                            </td>
-                            <td width='25%%' align='right'>
                                 <div class='reboot-button' style='color:dimGrey;font-family:Abel'>
                                     <button type='submit' id='rebooter' style='height:32px;width:200px'>Restart Monitor</button><br>&nbsp;
                                 </div>
                             </td>
-                            <td width='25%%' align='center'>&nbsp;</td>
+                            <td width='25%%'>&nbsp;</td>
                         </tr>
                     </table>
                     <hr>
