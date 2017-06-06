@@ -439,7 +439,7 @@ function reset() {
 // agent <- "YOUR ENV TAIL AGENT URL";
 
 // ...and comment out the following line:
-#import "../../../Dropbox/Programming/Imp/Codes/weather.nut"
+#import "~/Dropbox/Programming/Imp/Codes/weather.nut"
 
 // Specify UK units for all forecasts, ie. temperatures in Celsius
 weather.setUnits("uk");
