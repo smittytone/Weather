@@ -2,7 +2,7 @@
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
-![Weather Monitor](wm.jpg)
+![Weather Monitor](wm2.jpg)
 
 ## Hardware
 
@@ -26,6 +26,8 @@ Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform
 | Pin8 | SCL |
 | Pin9 | SDA |
 
+![Weather Monitor](wm.jpg)
+
 ### Setup
 
 1. Visit [Electric Imp](https://ide.electricimp.com/login/) to sign up for a free developer account. You will be asked to confirm your email address.
@@ -39,7 +41,7 @@ Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform
 7. Cut and paste the [Location library](https://github.com/smittytone/Location) code into both the agent and the device code &mdash; paste to replace the appropriate #import statement.
 8. Cut and paste the [HT16K33Matrix library](https://github.com/smittytone/HT16K33Matrix) code into the device code &mdash; paste to replace the appropriate #import statement.
 
-If you are using the macOS tool Squinter (download [here](https://electricimp.com/docs/attachments/squinter/squinter_1_0_119.zip)) to manage your Electric Imp projects, the the device code is set up to import and pre-process these files. You may need to change the #import statements to reflect the location of the libraries on your machine. Alternatively, you can simply paste in the contents of each file over the respective #import statement.
+If you are using the macOS tool Squinter (download [here](https://smittytone.github.io/squinter/index.html)) to manage your Electric Imp projects, the the device code is set up to import and pre-process these files. You may need to change the #import statements to reflect the location of the libraries on your machine. Alternatively, you can simply paste in the contents of each file over the respective #import statement.
 
 ## Control
 
