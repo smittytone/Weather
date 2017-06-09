@@ -313,8 +313,6 @@ function forecastCallback(err, data) {
                 local sendData = {};
                 sendData.cast <- item.icon;
 
-                if (debug) server.log("Summary: " + item.summary);
-
                 // Adjust troublesome icon names
                 if (item.icon == "wind") sendData.cast = "windy";
                 if (item.icon == "fog") sendData.cast = "foggy";
@@ -334,6 +332,11 @@ function forecastCallback(err, data) {
                     sendData.cast = "partly cloudy";
                 }
 
+                if (item.summary == "Drizzle" || item.summary == "Light Rain") {
+                    item.icon = "lightrain";
+                    sendData.cast = "drizzle";
+                }
+
                 local initial = sendData.cast.slice(0, 1);
                 sendData.cast = initial.toupper() + sendData.cast.slice(1);
 
@@ -345,7 +348,7 @@ function forecastCallback(err, data) {
 
                 // Log the outlook
                 local celsius = sendData.temp.tofloat();
-                local message = "Outlook: " + sendData.cast + ". Temperature: " + format("%.1f", celsius) + "C";
+                local message = "Summary: " + item.summary + " (" + sendData.cast + ") Temperature: " + format("%.1f", celsius) + "C";
                 if (debug) server.log(message);
                 savedData = sendData;
             }
