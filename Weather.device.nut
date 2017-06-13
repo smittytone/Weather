@@ -193,37 +193,6 @@ function retry() {
     }
 }
 
-function logWokenReason() {
-    // For debugging, log the reason the imp restarted
-    local s = "";
-
-    if (debug) {
-        local c = hardware.wakereason();
-        s = "Device restarted. Reason: ";
-        switch (c) {
-            case 0:
-                s = s + "Cold boot";
-                break;
-            case 4:
-                s = s + "Application code updated";
-                break;
-            case 5:
-                s = s + "Squirrel error during the last run";
-                break;
-            case 6:
-                s = s + "This device has a new impOS";
-                break;
-            case 9:
-                s = s + "This device has just been re-configured";
-                break;
-            default:
-                s = s + "Device restarted for some reason (code: " + c + ")";
-        }
-    }
-
-    return s;
-}
-
 function setTimeString() {
     local now = date();
     return (now.hour.tostring() + ":" + now.min.tostring() + ":" + now.sec.tostring);
@@ -239,23 +208,10 @@ function politeness(reason) {
     }
 }
 
-function bootMessage() {
-    local a = split(imp.getsoftwareversion(), "-");
-    server.log("impOS version " + a[2]);
-    local i = imp.net.info();
-    local w = i.interface[i.active];
-    local s = ("connectedssid" in w) ? w.connectedssid : w.ssid;
-    local t = (w.type == "wifi") ? "Connected by WiFi on SSID \"" + s + "\"" : "Ethernet";
-    server.log(t + " with IP address " + i.ipv4.address);
-
-    s = logWokenReason();
-    if (s.len() > 0) server.log(s);
-}
+// Load in generic boot message code
+#include "../generic/bootmessage.nut"
 
 // START PROGRAM
-
-// Boot 'screen'
-bootMessage();
 
 // Set up impOS update notification
 server.onshutdown(politeness);
