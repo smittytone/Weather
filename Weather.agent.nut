@@ -88,7 +88,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                     <p class='brightness-status' align='right'>Brightness: <span></span></p>
                                 </div>
                                 <div class='advancedsettings' style='background-color:#a30000'>
-                                    <p class='showhide' align='center'>Click for Advanced Settings</p>
+                                    <p class='showhide' align='center'>Show Advanced Settings</p>
                                     <div class='advanced' align='center'>
                                         <br>
                                         <div class='debug-checkbox' style='color:white;font-family:Abel'>
@@ -140,6 +140,8 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 
       $('.showhide').click(function(){
             $('.advanced').toggle();
+            var isVis = $('.advanced').is(':visible');
+            $('.showhide').text(isVis ? 'Hide Advanced Settings' : 'Show Advanced Settings');
       });
 
       // Functions
