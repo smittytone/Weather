@@ -1,4 +1,4 @@
-# Weather 3.5
+# Weather 3.6
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
@@ -43,11 +43,21 @@ Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform
 
 If you are using the macOS tool Squinter (download [here](https://smittytone.github.io/squinter/index.html)) to manage your Electric Imp projects, the the device code is set up to import and pre-process these files. You may need to change the #import statements to reflect the location of the libraries on your machine. Alternatively, you can simply paste in the contents of each file over the respective #import statement.
 
-## Control
+## Control UI
 
 The Weather Monitor has its own, web-based control UI, accessed at the agent URL.
 
 ![Weather Station UI](grab01.png)
+
+## Release Notes
+
+- 3.6
+    - Add support for Location class 1.3.0
+    - Add icon for light rain (drizzle)
+    - Nominate generic fonts for web UI in case web fonts can't be loaded
+    - Adjust web UI
+    - Add release notes to Read Me
+    - Assorted typos fixed and tweaks made
 
 ## Licence
 
