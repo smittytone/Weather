@@ -11,12 +11,13 @@ server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 // CONSTANTS
 
 const INITIAL_ANGLE = 270;
+const INITIAL_BRIGHT = 10;
 const RECONNECT_TIME = 900;
 
 // GLOBAL VARIABLES
 
 local locator = null;
-local led = null;
+local matrix = null;
 local savedForecast = null;
 local savedData = null;
 local savedIcon = null;
@@ -25,7 +26,7 @@ local localTemp = null;
 local iconset = {};
 local disData = "";
 local angle = INITIAL_ANGLE;
-local bright = 0;
+local bright = INITIAL_BRIGHT;
 local shownDisMessage = false;
 local debug = false;
 
@@ -39,7 +40,7 @@ function intro() {
     local nx = 0, ny = 0;
 
     for (local i = 0 ; i < 64 ; ++i) {
-        led.plot(x, y, 1).draw();
+        matrix.plot(x, y, 1).draw();
 
         if (dx == 1 && x == mx) {
             dy = 1;
@@ -74,7 +75,7 @@ function outro() {
     local nx = 3, ny = 2;
 
     for (local i = 0 ; i < 64 ; ++i) {
-        led.plot(x, y, 0).draw();
+        matrix.plot(x, y, 0).draw();
 
         if (dx == 1 && x == mx) {
             dy = -1;
@@ -119,7 +120,7 @@ function displayWeather(data) {
     savedData = data;
 
     // Clear this screen
-    led.clearDisplay();
+    matrix.clearDisplay();
 
     // Display the weather by name, plus the temperature
     local s = "    " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + "  ";
@@ -131,7 +132,7 @@ function displayWeather(data) {
     savedForecast = s;
 
     // Draw text - spaces added to scroll everything off the matrix
-    led.displayLine(s + "    ");
+    matrix.displayLine(s + "    ");
 
     // Pause for half a second
     imp.sleep(0.5);
@@ -146,7 +147,7 @@ function displayWeather(data) {
     }
 
     savedIcon = icon;
-    led.displayIcon(icon);
+    matrix.displayIcon(icon);
 }
 
 // CONNECTIVITY FUNCTIONS
@@ -160,18 +161,18 @@ function disHandler(reason) {
         if (!shownDisMessage) {
             // Device is disconnected so signal this to the user
             shownDisMessage = true;
-            led.displayLine("Disconnected (code: " + reason + ")");
+            matrix.displayLine("Disconnected (code: " + reason + ")");
 
             if (savedForecast) {
                 // 'savedForecast' will be null at first boot
                 imp.sleep(1.0);
-                led.displayLine(savedForecast + " ");
+                matrix.displayLine(savedForecast + " ");
             }
 
             if (savedIcon) {
                 // 'savedIcon' will be null if at first boot
                 imp.sleep(0.5);
-                led.displayIcon(savedIcon);
+                matrix.displayIcon(savedIcon);
             }
         }
     } else {
@@ -192,37 +193,6 @@ function retry() {
     }
 }
 
-function logWokenReason() {
-    // For debugging, log the reason the imp restarted
-    local s = "";
-
-    if (debug) {
-        local c = hardware.wakereason();
-        s = "Device restarted. Reason: ";
-        switch (c) {
-            case 0:
-                s = s + "Cold boot";
-                break;
-            case 4:
-                s = s + "Application code updated";
-                break;
-            case 5:
-                s = s + "Squirrel error during the last run";
-                break;
-            case 6:
-                s = s + "This device has a new impOS";
-                break;
-            case 9:
-                s = s + "This device has just been re-configured";
-                break;
-            default:
-                s = s + "Device restarted for some reason (code: " + c + ")";
-        }
-    }
-
-    return s;
-}
-
 function setTimeString() {
     local now = date();
     return (now.hour.tostring() + ":" + now.min.tostring() + ":" + now.sec.tostring);
@@ -238,21 +208,10 @@ function politeness(reason) {
     }
 }
 
-function bootMessage() {
-    local a = split(imp.getsoftwareversion(), "-");
-    server.log("impOS version " + a[2]);
-    local i = imp.net.info();
-    local w = i.interface[i.active];
-    local s = ("connectedssid" in w) ? w.connectedssid : w.ssid;
-    local t = (w.type == "wifi") ? "Connected by WiFi on SSID \"" + s + "\"" : "Ethernet";
-    server.log(t + " with IP address " + i.ipv4.address);
-    server.log(logWokenReason());
-}
+// Load in generic boot message code
+#include "../generic/bootmessage.nut"
 
 // START PROGRAM
-
-// Boot 'screen'
-bootMessage();
 
 // Set up impOS update notification
 server.onshutdown(politeness);
@@ -262,11 +221,11 @@ server.onunexpecteddisconnect(disHandler);
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
-led = HT16K33Matrix(hardware.i2c89, 0x70, true);
-led.init(bright, angle);
-led.defineChar(0, [0x3C, 0x42, 0x95, 0xA1, 0xA1, 0x95, 0x42, 0x3C]);
-led.defineChar(1, [0x70, 0x18, 0x7D, 0xB6, 0xBE, 0x3E]);
-led.defineChar(2, [0xBE, 0xB6, 0x7D, 0x18, 0x70]);
+matrix = HT16K33Matrix(hardware.i2c89, 0x70, true);
+matrix.init(bright, angle);
+matrix.defineChar(0, [0x3C, 0x42, 0x95, 0xA1, 0xA1, 0x95, 0x42, 0x3C]);
+matrix.defineChar(1, [0x70, 0x18, 0x7D, 0xB6, 0xBE, 0x3E]);
+matrix.defineChar(2, [0xBE, 0xB6, 0x7D, 0x18, 0x70]);
 
 // Splash screen animation
 intro();
@@ -279,6 +238,7 @@ locator = Location(null, true);
 iconset.clearday <- [0x89,0x42,0x18,0xBC,0x3D,0x18,0x42,0x91];
 iconset.clearnight <- [0x0,0x0,0x0,0x81,0xE7,0x7E,0x3C,0x18];
 iconset.rain <- [0x8C,0x5E,0x1E,0x5F,0x3F,0x9F,0x5E,0xC];
+iconset.lightrain <- [0x8C,0x52,0x12,0x51,0x31,0x91,0x52,0xC];
 iconset.snow <- [0x14,0x49,0x2A,0x1C,0x1C,0x2A,0x49,0x14];
 iconset.sleet <- [0x4C,0xBE,0x5E,0xBF,0x5F,0xBF,0x5E,0xAC];
 iconset.wind <- [0x14,0x14,0x14,0x14,0x14,0x55,0x55,0x22];
@@ -309,20 +269,23 @@ agent.on("weather.set.debug", function(value) {
 
 agent.on("weather.set.angle", function(a) {
     // The user has updated the device brightness/display angle settings
-    led.init(bright, a);
+    if (debug) server.log("Updating display angle (" + a + ")");
+    matrix.init(bright, a);
     angle = a;
     displayWeather(savedData);
 });
 
 agent.on("weather.set.bright", function(b) {
     // The user has updated the device brightness/display angle settings
-    led.init(b, angle);
+    if (debug) server.log("Updating display brightness (" + b + ")");
+    matrix.init(b, angle);
     bright = b;
     displayWeather(savedData);
 });
 
 agent.on("weather.set.settings", function(data) {
     // The agent has relayed the device settings
+    if (debug) server.log("Received device settings from agent");
     local change = false;
 
     if ("bright" in data) {
@@ -344,7 +307,8 @@ agent.on("weather.set.settings", function(data) {
     }
 
     if (change) {
-        led.init(bright, angle);
+        if (debug) server.log("Updating display based on new settings");
+        matrix.init(bright, angle);
         displayWeather(savedData);
     }
 });
@@ -362,6 +326,7 @@ if (!server.isconnected()) {
     disHandler(NOT_CONNECTED);
 } else {
     // Tell the agent that the device is ready
+    if (debug) server.log("Requesting a forecast and device settings from agent");
     agent.send("weather.get.settings", true);
     agent.send("weather.get.location", true);
 }

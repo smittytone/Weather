@@ -21,49 +21,47 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
         <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-weather.ico'>
         <meta name='viewport' content='width=device-width, initial-scale=1.0'>
         <style>
-            .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
-            body {background-color: #b30000;}
-            p {color: white; font-family: Abel; font-size: 18px}
+            .center { margin-left: auto;
+                      margin-right: auto;
+                      margin-bottom: auto;
+                      margin-top: auto; }
+            .showhide { -webkit-touch-callout: none;
+                        -webkit-user-select: none;
+                        -khtml-user-select: none;
+                        -moz-user-select: none;
+                        -ms-user-select: none;
+                        user-select: none;
+                        cursor: pointer }
+            body { background-color: #b30000; }
+            p {color: white; font-family: Abel, sans-serif; font-size: 18px}
             p.error-message {color:#ffcc00; font-size: 16px}
             p.colophon {font-size: 14px; text-align: center}
-            h2 {color: #ffcc00; font-family: Abel; font-weight:bold; font-size: 36px}
-            h4 {color: white; font-family: Abel; font-size: 22px}
-            p.showhide {cursor: pointer}
-            td {color: white; font-family: Abel}
+            h2 {color: #ffcc00; font-family: Abel, sans-serif; font-weight:bold; font-size: 36px}
+            h4 {color: white; font-family: Abel, sans-serif; font-size: 22px}
+            td {color: white; font-family: Abel, sans-serif}
             hr {border-color: #ffcc00}
         </style>
     </head>
     <body>
         <div class='container' style='padding: 20px'>
             <div style='border: 2px solid #ff9900'>
-                <h2 class='text-center'>Weather Monitor<br>&nbsp;</h2>
-                <div class='current-status'>
-                    <h4 class='temp-status' align='center'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
-                    <h4 class='outlook-status' align='center'>Current Outlook: <span></span></h4>
-                    <p class='location-status' align='center'>Device Location: <span></span></p>
-                    <p class='error-message' align='center'><i><span></span></i></p>
+                <h2 align='center'>Weather Monitor<br>&nbsp;</h2>
+                <div class='current-status-readout' align='center'>
+                    <h4 class='temp-status'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
+                    <h4 class='outlook-status'>Current Outlook: <span></span></h4>
+                    <p class='location-status'>Device Location: <span></span></p>
+                    <p class='error-message'><i><span></span></i></p>
                 </div>
                 <br>
-                <div class='controls' align='center'>
-                    <table width='100%%'>
-                        <tr>
-                            <td width='25%%' align='center'>&nbsp;</td>
-                            <td width='25%%' align='left'>
-                                <div class='update-button' style='color:dimGrey;font-family:Abel'>
-                                    <button type='submit' id='updater' style='height:32px;width:200px'>Update Monitor</button><br>&nbsp;
-                                </div>
-                            </td>
-                            <td width='25%%' align='right'>
-                                <div class='reboot-button' style='color:dimGrey;font-family:Abel'>
-                                    <button type='submit' id='rebooter' style='height:32px;width:200px'>Restart Monitor</button><br>&nbsp;
-                                </div>
-                            </td>
-                            <td width='25%%' align='center'>&nbsp;</td>
-                        </tr>
-                    </table>
-                    <hr>
+                <div class='controls-area' align='center'>
+                    <div class='update-button' style='color:dimGrey;font-family:Abel,sans-serif'>
+                        <button type='submit' id='updater' style='height:32px;width:200px'>Update Monitor</button><br>&nbsp;
+                    </div>
+                    <div class='reboot-button' style='color:dimGrey;font-family:Abel,sans-serif'>
+                        <button type='submit' id='rebooter' style='height:32px;width:200px'>Restart Monitor</button><br>&nbsp;
+                    </div>
                 </div>
-                <div class='controls'>
+                <div class='settings-area' align='center'>
                     <table width='100%%'>
                         <tr>
                             <td width='25%%'>&nbsp;</td>
@@ -80,21 +78,20 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                 </div>
                                 <hr>
                                 <div class='slider'>
-                                    <p class='brightness-status'>&nbsp;<br>Brightness</p>
+                                    <p class='brightness-status'>Brightness</p>
                                     <input type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
                                     <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
                                     <p class='brightness-status' align='right'>Brightness: <span></span></p>
                                 </div>
-                                <hr>
                                 <div class='advancedsettings' style='background-color:#a30000'>
-                                    <p class='showhide' align='center'>Click for Advanced Settings</p>
-                                    <div class='advanced' align='center' style='background-color:#b30000'>
+                                    <p class='showhide' align='center'>Show Advanced Settings</p>
+                                    <div class='advanced' align='center'>
                                         <br>
-                                        <div class='debug-checkbox' style='color:white;font-family:Abel'>
+                                        <div class='debug-checkbox' style='color:white;font-family:Abel,sans-serif'>
                                             <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
                                         </div>
                                         <br>
-                                        <div class='reset-button' style='color:dimGrey;font-family:Abel'>
+                                        <div class='reset-button' style='color:dimGrey;font-family:Abel,sans-serif'>
                                             <button type='submit' id='resetter' style='height:32px;width:200px'>Reset Monitor</button><br>&nbsp;
                                         </div>
                                     </div>
@@ -103,172 +100,173 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                             <td width='25%%'>&nbsp;</td>
                         </tr>
                     </table>
-                    <hr>
                 </div>
-                <p class='colophon'>Weather Monitor copyright &copy; Tony Smith, 2014-17<br>&nbsp;<br><a href='https://github.com/smittytone/Weather' target='_new'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
+                <p class='colophon'>Weather Monitor &copy; Tony Smith, 2014-17<br>&nbsp;<br><a href='https://github.com/smittytone/Weather' target='_new'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
             </div>
         </div>
 
-    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
-    <script>
-      $('.advanced').hide();
+        <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+        <script>
+        $('.advanced').hide();
 
-      // Variables
-      var agenturl = '%s';
+        // Variables
+        var agenturl = '%s';
 
-      // Set initial error message
-      $('.error-message span').text('Forecast updates automatically every two minutes');
+        // Set initial error message
+        $('.error-message span').text('Forecast updates automatically every two minutes');
 
-      // Get initial readings
-      getState(updateReadout);
+        // Get initial readings
+        getState(updateReadout);
 
-      // Set UI click actions
-      $('.update-button button').click(update);
-      $('.reboot-button button').click(reboot);
-      $('.reset-button button').click(reset);
-      $('#angle0').click(setangle);
-      $('#angle90').click(setangle);
-      $('#angle180').click(setangle);
-      $('#angle270').click(setangle);
-      $('#debug').click(setdebug);
+        // Set UI click actions
+        $('.update-button button').click(update);
+        $('.reboot-button button').click(reboot);
+        $('.reset-button button').click(reset);
+        $('#angle0').click(setangle);
+        $('#angle90').click(setangle);
+        $('#angle180').click(setangle);
+        $('#angle270').click(setangle);
+        $('#debug').click(setdebug);
 
-      var slider = document.getElementById('brightness');
-      $('.brightness-status span').text(slider.value);
-      slider.addEventListener('mouseup', updateSlider);
-      slider.addEventListener('touchend', updateSlider);
+        var slider = document.getElementById('brightness');
+        $('.brightness-status span').text(slider.value);
+        slider.addEventListener('mouseup', updateSlider);
+        slider.addEventListener('touchend', updateSlider);
 
-      $('.showhide').click(function(){
+        $('.showhide').click(function(){
             $('.advanced').toggle();
-      });
+            var isVis = $('.advanced').is(':visible');
+            $('.showhide').text(isVis ? 'Hide Advanced Settings' : 'Show Advanced Settings');
+        });
 
-      // Functions
-      function updateSlider() {
-        $('.brightness-status span').text($('#brightness').val());
-        setbright();
-      }
+        // Functions
+        function updateSlider() {
+            $('.brightness-status span').text($('#brightness').val());
+            setbright();
+        }
 
-      function updateReadout(data) {
-        if (data.error) {
-          $('.error-message span').text(data.error);
-        } else {
-          $('.temp-status span').text(data.temp);
-          $('.outlook-status span').text(data.cast);
-          $('.location-status span').text(data.location.long + ', ' + data.location.lat);
-          $('.error-message span').text('Forecast updates automatically every two minutes');
+        function updateReadout(data) {
+            if (data.error) {
+                $('.error-message span').text(data.error);
+            } else {
+                $('.temp-status span').text(data.temp);
+                $('.outlook-status span').text(data.cast);
+                $('.location-status span').text(data.location.place + ' (' + data.location.long + ', ' + data.location.lat + ')');
+                $('.error-message span').text('Forecast updates automatically every two minutes');
 
-          $('[name=angle]').each(function(i, v) {
-            if (data.angle == $(this).val()) {
-              $(this).prop('checked', true);
+                $('[name=angle]').each(function(i, v) {
+                    if (data.angle == $(this).val()) {
+                        $(this).prop('checked', true);
+                    }
+                });
+
+                $('#brightness').val(data.bright);
+                $('.brightness-status span').text(data.bright);
+                document.getElementById('debug').checked = data.debug;
             }
-          });
 
-           $('#brightness').val(data.bright);
-           $('.brightness-status span').text(data.bright);
-
-           document.getElementById('debug').checked = data.debug;
+            setTimeout(function() {
+                getState(updateReadout);
+            }, 120000);
         }
 
-        setTimeout(function() {
-          getState(updateReadout);
-          }, 120000);
-      }
-
-      function getState(callback) {
-         // Request the current data
-         $.ajax({
-           url : agenturl + '/current',
-           type: 'GET',
-           success : function(response) {
-             response = JSON.parse(response);
-               if (callback) {
-                 callback(response);
-               }
-           }
-         });
-      }
-
-      function update() {
-        // Trigger a forecast update
-        $.ajax({
-          url : agenturl + '/update',
-          type: 'POST',
-          data: JSON.stringify({ 'action' : 'update' }),
-          success : function(response) {
-            getState(updateReadout);
-          }
-        });
-      }
-
-      function reboot() {
-        // Trigger a device restart
-        $.ajax({
-          url : agenturl + '/update',
-          type: 'POST',
-          data: JSON.stringify({ 'action' : 'reboot' }),
-          success : function(response) {
-            getState(updateReadout);
-          }
-        });
-      }
-
-      function reset() {
-        // Trigger a device reset
-        $.ajax({
-          url : agenturl + '/update',
-          type: 'POST',
-          data: JSON.stringify({ 'action' : 'reset' }),
-          success : function(response) {
-            getState(updateReadout);
-          }
-        });
-      }
-      function setangle() {
-        // Set the device screen angle
-        var s;
-        var r = document.getElementsByName('angle');
-        for (var i = 0, length = r.length ; i < length ; i++) {
-          if (r[i].checked) {
-            s = i;
-            break;
-          }
+        function getState(callback) {
+            // Request the current data
+            $.ajax({
+                url : agenturl + '/current',
+                type: 'GET',
+                success : function(response) {
+                    response = JSON.parse(response);
+                    if (callback) {
+                        callback(response);
+                    }
+                }
+            });
         }
 
-        // Set the correct angle based on the button checked
-        if (s == 1) {
-          s = 90;
-        } else if (s == 2) {
-          s = 180;
-        } else if (s == 3) {
-          s = 270;
+        function update() {
+            // Trigger a forecast update
+            $.ajax({
+                url : agenturl + '/update',
+                type: 'POST',
+                data: JSON.stringify({ 'action' : 'update' }),
+                success : function(response) {
+                    getState(updateReadout);
+                }
+            });
         }
 
-        $.ajax({
-          url : agenturl + '/settings',
-          type: 'POST',
-          data: JSON.stringify({ 'angle' : s }),
-        });
-      }
+        function reboot() {
+            // Trigger a device restart
+            $.ajax({
+                url : agenturl + '/update',
+                type: 'POST',
+                data: JSON.stringify({ 'action' : 'reboot' }),
+                success : function(response) {
+                    getState(updateReadout);
+                }
+            });
+        }
 
-      function setbright() {
-        // Set the device screen brightness
-        $.ajax({
-          url : agenturl + '/settings',
-          type: 'POST',
-          data: JSON.stringify({ 'bright' : $('#brightness').val() })
-        });
-      }
+        function reset() {
+            // Trigger a device reset
+            $.ajax({
+                url : agenturl + '/update',
+                type: 'POST',
+                data: JSON.stringify({ 'action' : 'reset' }),
+                success : function(response) {
+                    getState(updateReadout);
+                }
+            });
+        }
 
-      function setdebug() {
-        // Tell the device to enter or leave debug mode
-        $.ajax({
-          url : agenturl + '/debug',
-          type: 'POST',
-          data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
-        });
-      }
+        function setangle() {
+            // Set the device screen angle
+            var s;
+            var r = document.getElementsByName('angle');
+            for (var i = 0, length = r.length ; i < length ; i++) {
+                if (r[i].checked) {
+                    s = i;
+                    break;
+                }
+            }
 
-    </script>
-  </body>
+            // Set the correct angle based on the button checked
+            if (s == 1) {
+                s = 90;
+            } else if (s == 2) {
+                s = 180;
+            } else if (s == 3) {
+                s = 270;
+            }
+
+            $.ajax({
+                url : agenturl + '/settings',
+                type: 'POST',
+                data: JSON.stringify({ 'angle' : s }),
+            });
+        }
+
+        function setbright() {
+            // Set the device screen brightness
+            $.ajax({
+                url : agenturl + '/settings',
+                type: 'POST',
+                data: JSON.stringify({ 'bright' : $('#brightness').val() })
+            });
+        }
+
+        function setdebug() {
+            // Tell the device to enter or leave debug mode
+            $.ajax({
+                url : agenturl + '/debug',
+                type: 'POST',
+                data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
+            });
+        }
+
+        </script>
+    </body>
 </html>";
 
 // GLOCAL VARIABlES
@@ -285,6 +283,7 @@ local savedData = null;
 
 local myLongitude = -0.123038;
 local myLatitude = 51.568330;
+local myLocation = "London, UK";
 local locationTime = -1;
 
 local deviceSyncFlag = false;
@@ -312,8 +311,6 @@ function forecastCallback(err, data) {
                 local sendData = {};
                 sendData.cast <- item.icon;
 
-                if (debug) server.log("Summary: " + item.summary);
-
                 // Adjust troublesome icon names
                 if (item.icon == "wind") sendData.cast = "windy";
                 if (item.icon == "fog") sendData.cast = "foggy";
@@ -333,6 +330,11 @@ function forecastCallback(err, data) {
                     sendData.cast = "partly cloudy";
                 }
 
+                if (item.summary == "Drizzle" || item.summary == "Light Rain") {
+                    item.icon = "lightrain";
+                    sendData.cast = "drizzle";
+                }
+
                 local initial = sendData.cast.slice(0, 1);
                 sendData.cast = initial.toupper() + sendData.cast.slice(1);
 
@@ -343,9 +345,12 @@ function forecastCallback(err, data) {
                 device.send("weather.show.forecast", sendData);
 
                 // Log the outlook
-                local celsius = sendData.temp.tofloat();
-                local message = "Outlook: " + sendData.cast + ". Temperature: " + format("%.1f", celsius) + "C";
-                if (debug) server.log(message);
+                if (debug) {
+                    local celsius = sendData.temp.tofloat();
+                    local message = "Summary: " + item.summary + " (" + sendData.cast + ") Temperature: " + format("%.1f", celsius) + "C";
+                    server.log(message);
+                }
+
                 savedData = sendData;
             }
         }
@@ -398,9 +403,14 @@ function locationLookup(dummy) {
     locator.locate(false, function() {
         local locale = locator.getLocation();
         if (!("err" in locale)) {
-            if (debug) server.log("Location: " + locale.longitude + ", " + locale.latitude);
+            if (debug) {
+                server.log("Co-ordinates: " + locale.longitude + ", " + locale.latitude);
+                server.log("Location    : " + locale.place);
+            }
+
             myLongitude = locale.longitude;
             myLatitude = locale.latitude;
+            myLocation = locale.place;
             locationTime = time();
             sendForecast(true);
         } else {
@@ -422,6 +432,7 @@ function getSettings(dummy) {
 
 function reset() {
     if (debug) server.log("Clearing settings to default values");
+    server.save({});
     settings = {};
     settings.angle <- 0;
     settings.bright <- 15;
@@ -443,9 +454,6 @@ function reset() {
 // Specify UK units for all forecasts, ie. temperatures in Celsius
 weather.setUnits("uk");
 
-// Clear settings if required
-if (clearSettings) server.save({});
-
 // Set up settings record
 local loadedSettings = server.load();
 
@@ -457,11 +465,16 @@ if (loadedSettings.len() == 0) {
     settings.debug <- false;
     server.save(settings);
 } else {
-    settings = loadedSettings;
-    if ("debug" in settings) {
-        debug = settings.debug;
+    // Clear settings if required (but only if we HAVE saved settings)
+    if (clearSettings) {
+        reset();
     } else {
-        settings.debug <- debug;
+        settings = loadedSettings;
+        if ("debug" in settings) {
+            debug = settings.debug;
+        } else {
+            settings.debug <- debug;
+        }
     }
 }
 
@@ -475,7 +488,7 @@ api = Rocky();
 
 // GET at / returns the UI
 api.get("/", function(context) {
-context.send(200, format(htmlString, http.agenturl()));
+    context.send(200, format(htmlString, http.agenturl()));
 });
 
 // GET at /current returns the current forecast as JSON:
@@ -493,6 +506,7 @@ api.get("/current", function(context) {
     local loc = {};
     loc.long <- myLongitude;
     loc.lat <- myLatitude;
+    loc.place <- myLocation;
     data.location <- loc;
     data.angle <- settings.angle.tostring();
     data.bright <- settings.bright;
