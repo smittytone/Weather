@@ -22,12 +22,14 @@ local savedForecast = null;
 local savedData = null;
 local savedIcon = null;
 local localTemp = null;
+local reconnectTimer = null;
 
 local iconset = {};
-local disData = "";
 local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
-local shownDisMessage = false;
+local discTime = -1;
+local discFlag = false;
+local discMessage = null;
 local debug = false;
 
 // DEVICE FUNCTIONS
@@ -152,15 +154,19 @@ function displayWeather(data) {
 
 // CONNECTIVITY FUNCTIONS
 
-function disHandler(reason) {
+function discHandler(reason) {
+    // Called if the server connection is broken or re-established
     if (reason != SERVER_CONNECTED) {
-        // Try to reconnect in 'RECONNECT_TIME' seconds
-        imp.wakeup(RECONNECT_TIME, retry);
-        if (disData.len() == 0) disData = "Disconnected at " + setTimeString() + ". Reason code: " + reason.tostring() + "\n";
+        // Server is not connected
+        if (!discFlag) {
+            // If we have no disconnection time recorded, set it now
+            discTime = setTimeString();
+            discMessage = "Went offline at " + discTime;
 
-        if (!shownDisMessage) {
-            // Device is disconnected so signal this to the user
-            shownDisMessage = true;
+            // Record that the clock is disconnected
+            discFlag = true;
+
+            // Signal disconnnection to the user
             matrix.displayLine("Disconnected (code: " + reason + ")");
 
             if (savedForecast) {
@@ -175,21 +181,37 @@ function disHandler(reason) {
                 matrix.displayIcon(savedIcon);
             }
         }
+
+        // Set an attempt to reconnect in 'DIS_TIMEOUT' seconds
+        if (reconnectTimer == null) reconnectTimer = imp.wakeup(DIS_TIMEOUT, reconnect);
     } else {
-        // Device is connected again, so update the display
-        shownDisMessage = false;
-        agent.send("weather.get.location", true);
-        if (debug) server.log(disData + "Reconnected at: " + setTimeString());
-        disData = "";
+        // Server is connected
+        if (discFlag) {
+            if (debug) {
+                server.log(discMessage);
+                local t = time() - discTime;
+                server.log(disData + "Reconnected at: " + setTimeString());
+                server.log("Back online after " + (time() - discTime) + " seconds");
+            }
+
+            // Reset the disconnected flags and saved data
+            discTime = -1;
+            discFlag = false;
+            discMessage = null;
+        }
+
+        if (reconnectTimer != null) reconnectTimer = null;
     }
 }
 
-function retry() {
-    // If we're not connected, attempt to re-connect
-    if (!server.isconnected()) {
-        server.connect(disHandler);
+function reconnect() {
+    // Called when necessary in order to attempt to reconnect to the server
+    if (server.isconnected()) {
+       // Is the clock already connected? If so trigger the 'connected' flow via 'discHandler()'
+       discHandler(SERVER_CONNECTED);
     } else {
-        disHandler(SERVER_CONNECTED);
+        // The clock is still disconnected, so attempt to connect
+        server.connect(discHandler, 30);
     }
 }
 
@@ -217,7 +239,7 @@ function politeness(reason) {
 server.onshutdown(politeness);
 
 // Set up disconnection handler
-server.onunexpecteddisconnect(disHandler);
+server.onunexpecteddisconnect(discHandler);
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
