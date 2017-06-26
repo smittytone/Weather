@@ -403,16 +403,16 @@ function locationLookup(dummy) {
     locator.locate(false, function() {
         local locale = locator.getLocation();
         if (!("err" in locale)) {
-            if (debug) {
-                server.log("Co-ordinates: " + locale.longitude + ", " + locale.latitude);
-                server.log("Location    : " + locale.place);
-            }
-
             myLongitude = locale.longitude;
             myLatitude = locale.latitude;
-            myLocation = locale.place;
+            myLocation = parsePlaceData(locale.placeData);
             locationTime = time();
             sendForecast(true);
+
+            if (debug) {
+                server.log("Co-ordinates: " + myLongitude + ", " + myLatitude);
+                server.log("Location    : " + myLocation);
+            }
         } else {
             server.error(locale.err);
             imp.wakeup(10, function() {
@@ -422,6 +422,37 @@ function locationLookup(dummy) {
     });
 
     deviceSyncFlag = true;
+}
+
+function parsePlaceData(data) {
+    // Run through the raw place data returned by Google and find what area we're in
+    foreach (item in data) {
+        foreach (k, v in item) {
+            // We're looking for the 'types' array
+            if (k == "types") {
+                // Got it, so look through the elements for 'neighborhood'
+                foreach (entry in v) {
+                    if (entry == "neighborhood") return item.formatted_address;
+                }
+            }
+        }
+    }
+
+    // Iterate through the results table to find the admin area instead
+    // This is because there is no 'neighborhood' entry
+    foreach (item in data) {
+        foreach (k, v in item) {
+            // We're looking for the 'types' array
+            if (k == "types") {
+                // Got it, so look through the elements for 'dministrative_area_level_3'
+                foreach (entry in v) {
+                    if (entry == "administrative_area_level_3") return item.formatted_address;
+                }
+            }
+        }
+    }
+
+    return "Unknown";
 }
 
 // SETTINGS FUNCTIONS
