@@ -12,7 +12,8 @@ server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 const INITIAL_ANGLE = 270;
 const INITIAL_BRIGHT = 10;
-const RECONNECT_TIME = 900;
+const RECONNECT_TIME = 30;
+const DIS_TIMEOUT = 900;
 
 // GLOBAL VARIABLES
 
@@ -182,11 +183,12 @@ function discHandler(reason) {
             }
         }
 
-        // Set an attempt to reconnect in 'DIS_TIMEOUT' seconds
+        // Set an attempt to reconnect in 'DIS_TIMEOUT' seconds if we haven't done so already
         if (reconnectTimer == null) reconnectTimer = imp.wakeup(DIS_TIMEOUT, reconnect);
     } else {
         // Server is connected
         if (discFlag) {
+            // Handle messaging if we were previously disconnected
             if (debug) {
                 server.log(discMessage);
                 local t = time() - discTime;
@@ -200,7 +202,11 @@ function discHandler(reason) {
             discMessage = null;
         }
 
-        if (reconnectTimer != null) reconnectTimer = null;
+        // Clear the reconnect timer
+        if (reconnectTimer != null) {
+            imp.cancelwakeup(reconnectTimer);
+            reconnectTimer = null;
+        }
     }
 }
 
@@ -211,7 +217,7 @@ function reconnect() {
        discHandler(SERVER_CONNECTED);
     } else {
         // The clock is still disconnected, so attempt to connect
-        server.connect(discHandler, 30);
+        server.connect(discHandler, RECONNECT_TIME);
     }
 }
 
