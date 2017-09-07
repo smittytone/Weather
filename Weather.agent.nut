@@ -402,7 +402,7 @@ function locationLookup(dummy) {
 
     locator.locate(false, function() {
         local locale = locator.getLocation();
-        if (!("err" in locale)) {
+        if (!("error" in locale)) {
             myLongitude = locale.longitude;
             myLatitude = locale.latitude;
             myLocation = parsePlaceData(locale.placeData);
@@ -413,6 +413,9 @@ function locationLookup(dummy) {
                 server.log("Co-ordinates: " + myLongitude + ", " + myLatitude);
                 server.log("Location    : " + myLocation);
             }
+
+            local tz = locator.getTimezone();
+            if (!("error" in tz) && debug) server.log("Timezone    : " + tz.gmtOffsetStr);
         } else {
             server.error(locale.err);
             imp.wakeup(10, function() {
@@ -434,17 +437,18 @@ function parsePlaceData(data) {
                 foreach (entry in v) {
                     if (entry == "neighborhood") return item.formatted_address;
                 }
-            }
-        }
-    }
 
-    // Iterate through the results table to find the admin area instead
-    // This is because there is no 'neighborhood' entry
-    foreach (item in data) {
-        foreach (k, v in item) {
-            // We're looking for the 'types' array
-            if (k == "types") {
-                // Got it, so look through the elements for 'dministrative_area_level_3'
+                // No 'neighborhood'? Try 'locality'
+                foreach (entry in v) {
+                    if (entry == "locality") return item.formatted_address;
+                }
+
+                // No 'locality'? Try 'administrative_area_level_2'
+                foreach (entry in v) {
+                    if (entry == "administrative_area_level_2") return item.formatted_address;
+                }
+
+                // No 'administrative_area_level_2'? Try 'dministrative_area_level_3'
                 foreach (entry in v) {
                     if (entry == "administrative_area_level_3") return item.formatted_address;
                 }
@@ -452,6 +456,7 @@ function parsePlaceData(data) {
         }
     }
 
+    // No match, so return an unknown locality
     return "Unknown";
 }
 
