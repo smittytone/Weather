@@ -170,13 +170,13 @@ function discHandler(reason) {
             // Signal disconnnection to the user
             matrix.displayLine("Disconnected (code: " + reason + ")");
 
-            if (savedForecast) {
+            if (savedForecast != null) {
                 // 'savedForecast' will be null at first boot
                 imp.sleep(1.0);
                 matrix.displayLine(savedForecast + " ");
             }
 
-            if (savedIcon) {
+            if (savedIcon != null) {
                 // 'savedIcon' will be null if at first boot
                 imp.sleep(0.5);
                 matrix.displayIcon(savedIcon);
@@ -300,7 +300,7 @@ agent.on("weather.set.angle", function(a) {
     if (debug) server.log("Updating display angle (" + a + ")");
     matrix.init(bright, a);
     angle = a;
-    displayWeather(savedData);
+    if (savedData != null) displayWeather(savedData);
 });
 
 agent.on("weather.set.bright", function(b) {
@@ -308,7 +308,7 @@ agent.on("weather.set.bright", function(b) {
     if (debug) server.log("Updating display brightness (" + b + ")");
     matrix.init(b, angle);
     bright = b;
-    displayWeather(savedData);
+    if (savedData != null) displayWeather(savedData);
 });
 
 agent.on("weather.set.settings", function(data) {
@@ -337,7 +337,7 @@ agent.on("weather.set.settings", function(data) {
     if (change) {
         if (debug) server.log("Updating display based on new settings");
         matrix.init(bright, angle);
-        displayWeather(savedData);
+        if (savedData != null) displayWeather(savedData);
     }
 });
 
@@ -351,10 +351,13 @@ agent.on("weather.set.reboot", function(dummy) {
 
 // If the server is not yet up, try again in 30s
 if (!server.isconnected()) {
-    disHandler(NOT_CONNECTED);
+    discTime = setTimeString();
+    discMessage = "Started up without a network connection at " + discTime;
+    discFlag = true;
+    server.connect(discHandler, RECONNECT_TIME);
 } else {
     // Tell the agent that the device is ready
-    if (debug) server.log("Requesting a forecast and device settings from agent");
+    if (debug) server.log("Device requesting a forecast and device settings from agent");
     agent.send("weather.get.settings", true);
     agent.send("weather.get.location", true);
 }
