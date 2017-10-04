@@ -40,11 +40,22 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             h4 {color: white; font-family: Abel, sans-serif; font-size: 22px}
             td {color: white; font-family: Abel, sans-serif}
             hr {border-color: #ffcc00}
+            .tabborder {width: 25%%}
+            .tabcontent {width: 50%%}
+            .uicontent {border: 2px solid #ffcc00}
+            .container {padding: 20px}
+
+            @media only screen and (max-width: 640px) {
+                .tabborder {width: 5%%}
+                .tabcontent {width: 90%%}
+                .container {padding: 5px}
+                .uicontent {border: 0px}
+            }
         </style>
     </head>
     <body>
-        <div class='container' style='padding: 20px'>
-            <div style='border: 2px solid #ff9900'>
+        <div class='container'>
+            <div class='uicontent'>
                 <h2 align='center'>Weather Monitor<br>&nbsp;</h2>
                 <div class='current-status-readout' align='center'>
                     <h4 class='temp-status'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
@@ -64,9 +75,9 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 <div class='settings-area' align='center'>
                     <table width='100%%'>
                         <tr>
-                            <td width='25%%'>&nbsp;</td>
-                            <td width='50%%'>
-                                <div class='settings' style='background-color:#a30000'>
+                            <td class='tabborder'>&nbsp;</td>
+                            <td class='tabcontent'>
+                                <div class='settings' style='background-color:#a30000;height:28px'>
                                     <p align='center'>Settings</p>
                                 </div>
                                 <div class='angle-radio'>
@@ -97,7 +108,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                     </div>
                                 </div>
                             </td>
-                            <td width='25%%'>&nbsp;</td>
+                            <td id='tabborder'>&nbsp;</td>
                         </tr>
                     </table>
                 </div>
@@ -111,6 +122,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 
         // Variables
         var agenturl = '%s';
+        var isMobile = false;
 
         // Set initial error message
         $('.error-message span').text('Forecast updates automatically every two minutes');
@@ -367,9 +379,9 @@ function forecastCallback(err, data) {
     // see https://github.com/smittytone/EnvTailTempLog
     http.get(agent + "/state").sendasync(function(response) {
         if (response.statuscode == 200) {
-            if (debug) server.log("Response from sensor agent: " + response.statuscode);
             if ("body" in response) {
                 try {
+                    if (debug) server.log("Local temperature data received from sensor");
                     local data = http.jsondecode(response.body);
                     device.send("weather.set.local.temp", data.temp);
                 } catch (error) {
@@ -377,7 +389,11 @@ function forecastCallback(err, data) {
                 }
             }
         } else {
-            if (debug) server.error("Response from agent: " + response.statuscode + " " + response.body);
+            if (response.statuscode == 404) {
+                if (debug) server.log("Sensor not available");
+            } else {
+                if (debug) server.error("Response from sensor agent: " + response.statuscode + " - " + response.body);
+            }
         }
     });
 

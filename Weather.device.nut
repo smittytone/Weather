@@ -230,9 +230,8 @@ function politeness(reason) {
     if (reason == SHUTDOWN_NEWFIRMWARE) {
         if (debug) server.log("New impOS release available - restarting in 1 minute");
         imp.wakeup(60, function() {
-            if (debug) server.log("Restarting...");
             server.restart();
-        }.bindenv(this));
+        });
     }
 }
 
