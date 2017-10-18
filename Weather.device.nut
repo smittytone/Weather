@@ -1,9 +1,12 @@
 // Weather Monitor
 // Copyright 2016-17, Tony Smith
 
-#import "../Location/location.class.nut"
+// IMPORTS
 
+#import "../Location/location.class.nut"
 #import "../HT16K33Matrix/ht16k33matrix.class.nut"
+
+// EARLY-START CODE
 
 // Set up connectivity policy — this should come as early in the code as possible
 server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
@@ -235,10 +238,10 @@ function politeness(reason) {
     }
 }
 
+// START PROGRAM
+
 // Load in generic boot message code
 #include "../generic/bootmessage.nut"
-
-// START PROGRAM
 
 // Set up impOS update notification
 server.onshutdown(politeness);

@@ -1,6 +1,8 @@
 // Weather Monitor
 // Copyright 2016-17, Tony Smith
 
+// IMPORTS
+
 #require "DarkSky.class.nut:1.0.1"
 #require "Rocky.class.nut:2.0.0"
 #require "IFTTT.class.nut:1.0.0"
@@ -11,7 +13,7 @@
 
 const REFRESH_TIME = 900;
 const AGENT_START_TIME = 120;
-const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
+const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
     <head>
         <title>Weather Monitor</title>
@@ -540,7 +542,7 @@ api = Rocky();
 
 // GET at / returns the UI
 api.get("/", function(context) {
-    context.send(200, format(htmlString, http.agenturl()));
+    context.send(200, format(HTML_STRING, http.agenturl()));
 });
 
 // GET at /current returns the current forecast as JSON:
@@ -569,7 +571,7 @@ api.get("/current", function(context) {
 
 // POST at /update triggers an action, chosen by the JSON
 // passed to the endpoint:
-// { "action" : "<update/reboot>"  }
+// { "action" : "<update/reboot>" }
 // 'update' causes the forecast to be updated
 // 'reboot' causes the device to restart
 api.post("/update", function(context) {
