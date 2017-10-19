@@ -195,7 +195,7 @@ function discHandler(reason) {
             if (debug) {
                 server.log(discMessage);
                 local t = time() - discTime;
-                server.log(disData + "Reconnected at: " + setTimeString());
+                server.log("Reconnected at: " + setTimeString());
                 server.log("Back online after " + t + " seconds");
             }
 
