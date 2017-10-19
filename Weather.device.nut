@@ -16,7 +16,7 @@ server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 const INITIAL_ANGLE = 270;
 const INITIAL_BRIGHT = 10;
 const RECONNECT_TIME = 30;
-const DIS_TIMEOUT = 900;
+const DIS_TIMEOUT = 300;
 
 // GLOBAL VARIABLES
 
@@ -31,10 +31,10 @@ local reconnectTimer = null;
 local iconset = {};
 local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
-local discTime = -1;
+local discTime = 0;
 local discFlag = false;
 local discMessage = null;
-local debug = false;
+local debug = true;
 
 // DEVICE FUNCTIONS
 
@@ -164,8 +164,8 @@ function discHandler(reason) {
         // Server is not connected
         if (!discFlag) {
             // If we have no disconnection time recorded, set it now
-            discTime = setTimeString();
-            discMessage = "Went offline at " + discTime;
+            discTime = time();
+            discMessage = "Went offline at " + setTimeString();
 
             // Record that the clock is disconnected
             discFlag = true;
@@ -196,11 +196,11 @@ function discHandler(reason) {
                 server.log(discMessage);
                 local t = time() - discTime;
                 server.log(disData + "Reconnected at: " + setTimeString());
-                server.log("Back online after " + (time() - discTime) + " seconds");
+                server.log("Back online after " + t + " seconds");
             }
 
             // Reset the disconnected flags and saved data
-            discTime = -1;
+            discTime = 0;
             discFlag = false;
             discMessage = null;
         }
@@ -353,8 +353,8 @@ agent.on("weather.set.reboot", function(dummy) {
 
 // If the server is not yet up, try again in 30s
 if (!server.isconnected()) {
-    discTime = setTimeString();
-    discMessage = "Started up without a network connection at " + discTime;
+    discTime = time();
+    discMessage = "Started up without a network connection at " + setTimeString();
     discFlag = true;
     server.connect(discHandler, RECONNECT_TIME);
 } else {
