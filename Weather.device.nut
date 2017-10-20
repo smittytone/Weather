@@ -215,13 +215,16 @@ function discHandler(reason) {
 
 function reconnect() {
     // Called when necessary in order to attempt to reconnect to the server
+    server.connect(discHandler, RECONNECT_TIME);
+
+    /*
     if (server.isconnected()) {
        // Is the clock already connected? If so trigger the 'connected' flow via 'discHandler()'
        discHandler(SERVER_CONNECTED);
     } else {
         // The clock is still disconnected, so attempt to connect
-        server.connect(discHandler, RECONNECT_TIME);
     }
+    */
 }
 
 function setTimeString() {
