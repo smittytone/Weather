@@ -215,6 +215,7 @@ function discHandler(reason) {
 
 function reconnect() {
     // Called when necessary in order to attempt to reconnect to the server
+    reconnectTimer == null;
     server.connect(discHandler, RECONNECT_TIME);
 
     /*
