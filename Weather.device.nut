@@ -15,8 +15,8 @@ server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 const INITIAL_ANGLE = 270;
 const INITIAL_BRIGHT = 10;
-const RECONNECT_TIME = 30;
-const DIS_TIMEOUT = 300;
+const RECONNECT_TIMEOUT = 30;
+const RECONNECT_PAUSE = 300;
 
 // GLOBAL VARIABLES
 
@@ -26,14 +26,13 @@ local savedForecast = null;
 local savedData = null;
 local savedIcon = null;
 local localTemp = null;
-local reconnectTimer = null;
 
 local iconset = {};
 local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
-local discTime = 0;
-local discFlag = false;
-local discMessage = null;
+local disTime = 0;
+local disFlag = false;
+local disMessage = null;
 local debug = true;
 
 // DEVICE FUNCTIONS
@@ -158,21 +157,20 @@ function displayWeather(data) {
 
 // CONNECTIVITY FUNCTIONS
 
-function discHandler(reason) {
+function disHandler(reason) {
     // Called if the server connection is broken or re-established
     if (reason != SERVER_CONNECTED) {
         // Server is not connected
-        if (!discFlag) {
-            // If we have no disconnection time recorded, set it now
-            discTime = time();
-            discMessage = "Went offline at " + setTimeString();
-
+        if (!disFlag) {
             // Record that the clock is disconnected
-            discFlag = true;
+            disFlag = true;
+            disTime = time();
+            disMessage = "Went offline at " + setTimeString();
 
-            // Signal disconnnection to the user
+            // Signal disconnnection to the user...
             matrix.displayLine("Disconnected (code: " + reason + ")");
 
+            // ...and replay the last saved forecast
             if (savedForecast != null) {
                 // 'savedForecast' will be null at first boot
                 imp.sleep(1.0);
@@ -186,46 +184,30 @@ function discHandler(reason) {
             }
         }
 
-        // Set an attempt to reconnect in 'DIS_TIMEOUT' seconds if we haven't done so already
-        if (reconnectTimer == null) reconnectTimer = imp.wakeup(DIS_TIMEOUT, reconnect);
+        // Attempt to reconnect in 'RECONNECT_PAUSE' seconds
+        imp.wakeup(RECONNECT_PAUSE, function() {
+            server.connect(disHandler, RECONNECT_TIMEOUT);
+        });
     } else {
         // Server is connected
-        if (discFlag) {
+        if (disFlag) {
             // Handle messaging if we were previously disconnected
             if (debug) {
-                server.log(discMessage);
-                local t = time() - discTime;
+                server.log(disMessage);
                 server.log("Reconnected at: " + setTimeString());
-                server.log("Back online after " + t + " seconds");
+                server.log(format("Back online after %i seconds", time() - disTime));
             }
 
             // Reset the disconnected flags and saved data
-            discTime = 0;
-            discFlag = false;
-            discMessage = null;
-        }
+            disTime = 0;
+            disFlag = false;
+            disMessage = null;
 
-        // Clear the reconnect timer
-        if (reconnectTimer != null) {
-            imp.cancelwakeup(reconnectTimer);
-            reconnectTimer = null;
+            // Re-acquire settings, Location
+            agent.send("weather.get.settings", true);
+            agent.send("weather.get.location", true);
         }
     }
-}
-
-function reconnect() {
-    // Called when necessary in order to attempt to reconnect to the server
-    reconnectTimer == null;
-    server.connect(discHandler, RECONNECT_TIME);
-
-    /*
-    if (server.isconnected()) {
-       // Is the clock already connected? If so trigger the 'connected' flow via 'discHandler()'
-       discHandler(SERVER_CONNECTED);
-    } else {
-        // The clock is still disconnected, so attempt to connect
-    }
-    */
 }
 
 function setTimeString() {
@@ -251,7 +233,7 @@ function politeness(reason) {
 server.onshutdown(politeness);
 
 // Set up disconnection handler
-server.onunexpecteddisconnect(discHandler);
+server.onunexpecteddisconnect(disHandler);
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
@@ -356,14 +338,15 @@ agent.on("weather.set.reboot", function(dummy) {
 // It will display this when it receives it.
 
 // If the server is not yet up, try again in 30s
-if (!server.isconnected()) {
-    discTime = time();
-    discMessage = "Started up without a network connection at " + setTimeString();
-    discFlag = true;
-    server.connect(discHandler, RECONNECT_TIME);
-} else {
+if (server.isconnected()) {
     // Tell the agent that the device is ready
     if (debug) server.log("Device requesting a forecast and device settings from agent");
     agent.send("weather.get.settings", true);
     agent.send("weather.get.location", true);
+} else {
+    // Link down - try to connect to the server...
+    disFlag = true;
+    disTime = time();
+    disMessage = "Started up without a network connection at " + setTimeString();
+    server.connect(disHandler, RECONNECT_TIMEOUT);
 }
