@@ -673,8 +673,3 @@ restartTimer = imp.wakeup(AGENT_START_TIME, function() {
         }
     }
 });
-
-server.onshutdown(function(reason) {
-    server.log("Agent restarting - reason: " + reason);
-    server.restart();
-});
