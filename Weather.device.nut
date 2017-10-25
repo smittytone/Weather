@@ -165,7 +165,6 @@ function disHandler(reason) {
             // Record that the clock is disconnected
             disFlag = true;
             disTime = time();
-            disMessage = "Went offline at " + setTimeString();
 
             // Signal disconnnection to the user...
             matrix.displayLine("Disconnected (code: " + reason + ")");
@@ -192,26 +191,23 @@ function disHandler(reason) {
         // Server is connected
         if (disFlag) {
             // Handle messaging if we were previously disconnected
-            if (debug) {
-                server.log(disMessage);
-                server.log("Reconnected at: " + setTimeString());
-                server.log(format("Back online after %i seconds", time() - disTime));
-            }
+            server.log("Device went offline at " + setTimeString(disTime));
+            server.log("Reconnected at " + setTimeString());
 
             // Reset the disconnected flags and saved data
             disTime = 0;
             disFlag = false;
-            disMessage = null;
 
             // Re-acquire settings, Location
+            if (debug) server.log("Device requesting a forecast and device settings from agent");
             agent.send("weather.get.settings", true);
             agent.send("weather.get.location", true);
         }
     }
 }
 
-function setTimeString() {
-    local now = date();
+function setTimeString(time = null) {
+    local now = time != null ? time : date();
     return (now.hour.tostring() + ":" + now.min.tostring() + ":" + now.sec.tostring);
 }
 
