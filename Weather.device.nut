@@ -11,6 +11,16 @@
 // Set up connectivity policy — this should come as early in the code as possible
 server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
+// Set up impOS update notification
+server.onshutdown(function(reason) {
+    if (reason == SHUTDOWN_NEWFIRMWARE) {
+        if (debug) server.log("New impOS release available - restarting in 1 minute");
+        imp.wakeup(60, function() {
+            server.restart();
+        });
+    }
+});
+
 // CONSTANTS
 
 const INITIAL_ANGLE = 270;
@@ -211,22 +221,10 @@ function setTimeString(time = null) {
     return (now.hour.tostring() + ":" + now.min.tostring() + ":" + now.sec.tostring);
 }
 
-function politeness(reason) {
-    if (reason == SHUTDOWN_NEWFIRMWARE) {
-        if (debug) server.log("New impOS release available - restarting in 1 minute");
-        imp.wakeup(60, function() {
-            server.restart();
-        });
-    }
-}
-
 // START PROGRAM
 
 // Load in generic boot message code
 #include "../generic/bootmessage.nut"
-
-// Set up impOS update notification
-server.onshutdown(politeness);
 
 // Set up disconnection handler
 server.onunexpecteddisconnect(disHandler);
