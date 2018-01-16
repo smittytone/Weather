@@ -1,16 +1,13 @@
 // Weather Monitor
-// Copyright 2016-17, Tony Smith
+// Copyright 2016-18, Tony Smith
 
 // IMPORTS
-
 #require "DarkSky.class.nut:1.0.1"
 #require "Rocky.class.nut:2.0.0"
 #require "IFTTT.class.nut:1.0.0"
-
 #import "../Location/location.class.nut"
 
 // CONSTANTS
-
 const REFRESH_TIME = 900;
 const AGENT_START_TIME = 120;
 const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
@@ -283,8 +280,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
     </body>
 </html>";
 
-// GLOCAL VARIABlES
-
+// GLOBAL VARIABlES
 local request = null;
 local weather = null;
 local locator = null;
@@ -305,7 +301,6 @@ local debug = false;
 local clearSettings = false;
 
 // FORECAST FUNCTIONS
-
 function sendForecast(dummy) {
    if (debug) server.log("Requesting weather forecast data from Dark Sky");
     weather.forecastRequest(myLongitude, myLatitude, forecastCallback.bindenv(this));
@@ -407,7 +402,6 @@ function forecastCallback(err, data) {
 }
 
 // LOCATION FUNCTIONS
-
 function locationLookup(dummy) {
     if (restartTimer) imp.cancelwakeup(restartTimer);
     restartTimer = null;
@@ -479,7 +473,6 @@ function parsePlaceData(data) {
 }
 
 // SETTINGS FUNCTIONS
-
 function getSettings(dummy) {
     device.send("weather.set.settings", settings);
 }
@@ -672,4 +665,12 @@ restartTimer = imp.wakeup(AGENT_START_TIME, function() {
             if (debug) server.log("Agent restarted, but device not online");
         }
     }
+});
+
+// GET at /info returns device capabilities (EXPERIMENTAL)
+api.get("/info", function(context) {
+    local info = {};
+    info.app <- "761DDC8C-E7F5-40D4-87AC-9B06D91A672D";
+    info.watchsupported <- "true";
+    context.send(200, http.jsonencode(info));
 });

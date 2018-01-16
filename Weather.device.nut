@@ -1,13 +1,11 @@
 // Weather Monitor
-// Copyright 2016-17, Tony Smith
+// Copyright 2016-18, Tony Smith
 
 // IMPORTS
-
 #import "../Location/location.class.nut"
 #import "../HT16K33Matrix/ht16k33matrix.class.nut"
 
 // EARLY-START CODE
-
 // Set up connectivity policy — this should come as early in the code as possible
 server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
@@ -22,14 +20,12 @@ server.onshutdown(function(reason) {
 });
 
 // CONSTANTS
-
 const INITIAL_ANGLE = 270;
 const INITIAL_BRIGHT = 10;
 const RECONNECT_TIMEOUT = 30;
 const RECONNECT_PAUSE = 300;
 
 // GLOBAL VARIABLES
-
 local locator = null;
 local matrix = null;
 local savedForecast = null;
@@ -46,7 +42,6 @@ local disMessage = null;
 local debug = true;
 
 // DEVICE FUNCTIONS
-
 function intro() {
     // Fill in the matrix pixels from the outside in, in spiral fashion
     local x = 7, y = 0;
@@ -166,7 +161,6 @@ function displayWeather(data) {
 }
 
 // CONNECTIVITY FUNCTIONS
-
 function disHandler(reason) {
     // Called if the server connection is broken or re-established
     if (reason != SERVER_CONNECTED) {
@@ -222,7 +216,6 @@ function setTimeString(time = null) {
 }
 
 // START PROGRAM
-
 // Load in generic boot message code
 #include "../generic/bootmessage.nut"
 
