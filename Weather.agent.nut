@@ -661,7 +661,6 @@ api.get("/info", function(context) {
 });
 
 api.get("/state", function(context) {
-    server.log("Received state request");
     local data = device.isconnected() ? "1" : "0";
     context.send(200, data);
 });
