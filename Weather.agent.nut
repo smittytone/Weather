@@ -652,6 +652,20 @@ api.post("/debug", function(context) {
     context.send(200, (debug ? "Debug on" : "Debug off"));
 });
 
+// GET at /info returns device capabilities (EXPERIMENTAL)
+api.get("/info", function(context) {
+    local info = {};
+    info.app <- "761DDC8C-E7F5-40D4-87AC-9B06D91A672D";
+    info.watchsupported <- "true";
+    context.send(200, http.jsonencode(info));
+});
+
+api.get("/state", function(context) {
+    server.log("Received state request");
+    local data = device.isconnected() ? "1" : "0";
+    context.send(200, data);
+});
+
 // In 'AGENT_START_TIME' seconds, check if the device has not synced (as far as
 // the agent knows) and is connected, ie. we have probably experienced
 // an unexpected agent restart. If so, do a location lookup as if asked
@@ -667,10 +681,5 @@ restartTimer = imp.wakeup(AGENT_START_TIME, function() {
     }
 });
 
-// GET at /info returns device capabilities (EXPERIMENTAL)
-api.get("/info", function(context) {
-    local info = {};
-    info.app <- "761DDC8C-E7F5-40D4-87AC-9B06D91A672D";
-    info.watchsupported <- "true";
-    context.send(200, http.jsonencode(info));
-});
+
+
