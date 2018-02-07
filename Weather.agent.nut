@@ -1,17 +1,16 @@
 // Weather Monitor
-// Copyright 2016-17, Tony Smith
+// Copyright 2016-18, Tony Smith
 
+// IMPORTS
 #require "DarkSky.class.nut:1.0.1"
 #require "Rocky.class.nut:2.0.0"
 #require "IFTTT.class.nut:1.0.0"
-
 #import "../Location/location.class.nut"
 
 // CONSTANTS
-
 const REFRESH_TIME = 900;
 const AGENT_START_TIME = 120;
-const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
+const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
     <head>
         <title>Weather Monitor</title>
@@ -40,11 +39,22 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             h4 {color: white; font-family: Abel, sans-serif; font-size: 22px}
             td {color: white; font-family: Abel, sans-serif}
             hr {border-color: #ffcc00}
+            .tabborder {width: 25%%}
+            .tabcontent {width: 50%%}
+            .uicontent {border: 2px solid #ffcc00}
+            .container {padding: 20px}
+
+            @media only screen and (max-width: 640px) {
+                .tabborder {width: 5%%}
+                .tabcontent {width: 90%%}
+                .container {padding: 5px}
+                .uicontent {border: 0px}
+            }
         </style>
     </head>
     <body>
-        <div class='container' style='padding: 20px'>
-            <div style='border: 2px solid #ff9900'>
+        <div class='container'>
+            <div class='uicontent'>
                 <h2 align='center'>Weather Monitor<br>&nbsp;</h2>
                 <div class='current-status-readout' align='center'>
                     <h4 class='temp-status'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
@@ -64,9 +74,9 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 <div class='settings-area' align='center'>
                     <table width='100%%'>
                         <tr>
-                            <td width='25%%'>&nbsp;</td>
-                            <td width='50%%'>
-                                <div class='settings' style='background-color:#a30000'>
+                            <td class='tabborder'>&nbsp;</td>
+                            <td class='tabcontent'>
+                                <div class='settings' style='background-color:#a30000;height:28px'>
                                     <p align='center'>Settings</p>
                                 </div>
                                 <div class='angle-radio'>
@@ -97,7 +107,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                     </div>
                                 </div>
                             </td>
-                            <td width='25%%'>&nbsp;</td>
+                            <td id='tabborder'>&nbsp;</td>
                         </tr>
                     </table>
                 </div>
@@ -105,12 +115,13 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             </div>
         </div>
 
-        <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+        <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
         <script>
         $('.advanced').hide();
 
         // Variables
         var agenturl = '%s';
+        var isMobile = false;
 
         // Set initial error message
         $('.error-message span').text('Forecast updates automatically every two minutes');
@@ -269,8 +280,7 @@ const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
     </body>
 </html>";
 
-// GLOCAL VARIABlES
-
+// GLOBAL VARIABlES
 local request = null;
 local weather = null;
 local locator = null;
@@ -291,7 +301,6 @@ local debug = false;
 local clearSettings = false;
 
 // FORECAST FUNCTIONS
-
 function sendForecast(dummy) {
    if (debug) server.log("Requesting weather forecast data from Dark Sky");
     weather.forecastRequest(myLongitude, myLatitude, forecastCallback.bindenv(this));
@@ -367,9 +376,9 @@ function forecastCallback(err, data) {
     // see https://github.com/smittytone/EnvTailTempLog
     http.get(agent + "/state").sendasync(function(response) {
         if (response.statuscode == 200) {
-            if (debug) server.log("Response from sensor agent: " + response.statuscode);
             if ("body" in response) {
                 try {
+                    if (debug) server.log("Local temperature data received from sensor");
                     local data = http.jsondecode(response.body);
                     device.send("weather.set.local.temp", data.temp);
                 } catch (error) {
@@ -377,7 +386,11 @@ function forecastCallback(err, data) {
                 }
             }
         } else {
-            if (debug) server.error("Response from agent: " + response.statuscode + " " + response.body);
+            if (response.statuscode == 404) {
+                if (debug) server.log("Sensor not available");
+            } else {
+                if (debug) server.error("Response from sensor agent: " + response.statuscode + " - " + response.body);
+            }
         }
     });
 
@@ -389,7 +402,6 @@ function forecastCallback(err, data) {
 }
 
 // LOCATION FUNCTIONS
-
 function locationLookup(dummy) {
     if (restartTimer) imp.cancelwakeup(restartTimer);
     restartTimer = null;
@@ -402,17 +414,20 @@ function locationLookup(dummy) {
 
     locator.locate(false, function() {
         local locale = locator.getLocation();
-        if (!("err" in locale)) {
-            if (debug) {
-                server.log("Co-ordinates: " + locale.longitude + ", " + locale.latitude);
-                server.log("Location    : " + locale.place);
-            }
-
+        if (!("error" in locale)) {
             myLongitude = locale.longitude;
             myLatitude = locale.latitude;
-            myLocation = locale.place;
+            myLocation = parsePlaceData(locale.placeData);
             locationTime = time();
             sendForecast(true);
+
+            if (debug) {
+                server.log("Co-ordinates: " + myLongitude + ", " + myLatitude);
+                server.log("Location    : " + myLocation);
+            }
+
+            local tz = locator.getTimezone();
+            if (!("error" in tz) && debug) server.log("Timezone    : " + tz.gmtOffsetStr);
         } else {
             server.error(locale.err);
             imp.wakeup(10, function() {
@@ -424,8 +439,40 @@ function locationLookup(dummy) {
     deviceSyncFlag = true;
 }
 
-// SETTINGS FUNCTIONS
+function parsePlaceData(data) {
+    // Run through the raw place data returned by Google and find what area we're in
+    foreach (item in data) {
+        foreach (k, v in item) {
+            // We're looking for the 'types' array
+            if (k == "types") {
+                // Got it, so look through the elements for 'neighborhood'
+                foreach (entry in v) {
+                    if (entry == "neighborhood") return item.formatted_address;
+                }
 
+                // No 'neighborhood'? Try 'locality'
+                foreach (entry in v) {
+                    if (entry == "locality") return item.formatted_address;
+                }
+
+                // No 'locality'? Try 'administrative_area_level_2'
+                foreach (entry in v) {
+                    if (entry == "administrative_area_level_2") return item.formatted_address;
+                }
+
+                // No 'administrative_area_level_2'? Try 'dministrative_area_level_3'
+                foreach (entry in v) {
+                    if (entry == "administrative_area_level_3") return item.formatted_address;
+                }
+            }
+        }
+    }
+
+    // No match, so return an unknown locality
+    return "Unknown";
+}
+
+// SETTINGS FUNCTIONS
 function getSettings(dummy) {
     device.send("weather.set.settings", settings);
 }
@@ -488,7 +535,7 @@ api = Rocky();
 
 // GET at / returns the UI
 api.get("/", function(context) {
-    context.send(200, format(htmlString, http.agenturl()));
+    context.send(200, format(HTML_STRING, http.agenturl()));
 });
 
 // GET at /current returns the current forecast as JSON:
@@ -517,7 +564,7 @@ api.get("/current", function(context) {
 
 // POST at /update triggers an action, chosen by the JSON
 // passed to the endpoint:
-// { "action" : "<update/reboot>"  }
+// { "action" : "<update/reboot>" }
 // 'update' causes the forecast to be updated
 // 'reboot' causes the device to restart
 api.post("/update", function(context) {
@@ -605,6 +652,19 @@ api.post("/debug", function(context) {
     context.send(200, (debug ? "Debug on" : "Debug off"));
 });
 
+// GET at /info returns device capabilities (EXPERIMENTAL)
+api.get("/info", function(context) {
+    local info = {};
+    info.app <- "761DDC8C-E7F5-40D4-87AC-9B06D91A672D";
+    info.watchsupported <- "true";
+    context.send(200, http.jsonencode(info));
+});
+
+api.get("/state", function(context) {
+    local data = device.isconnected() ? "1" : "0";
+    context.send(200, data);
+});
+
 // In 'AGENT_START_TIME' seconds, check if the device has not synced (as far as
 // the agent knows) and is connected, ie. we have probably experienced
 // an unexpected agent restart. If so, do a location lookup as if asked
@@ -619,3 +679,6 @@ restartTimer = imp.wakeup(AGENT_START_TIME, function() {
         }
     }
 });
+
+
+

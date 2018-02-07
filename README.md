@@ -1,8 +1,8 @@
-# Weather 3.6
+# Weather 3.7
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
-![Weather Monitor](wm2.jpg)
+![Weather Monitor](images/wm2.jpg)
 
 ## Hardware
 
@@ -26,7 +26,7 @@ Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform
 | Pin8 | SCL |
 | Pin9 | SDA |
 
-![Weather Monitor](wm.jpg)
+![Weather Monitor](images/wm.jpg)
 
 ### Setup
 
@@ -47,10 +47,13 @@ If you are using the macOS tool Squinter (download [here](https://smittytone.git
 
 The Weather Monitor has its own, web-based control UI, accessed at the agent URL.
 
-![Weather Station UI](grab01.png)
+![Weather Station UI](images/grab01.png)
 
 ## Release Notes
 
+- 3.7
+    - Add support for Location class 1.4.1
+    - Assorted code tweaks, minor bug fixes made
 - 3.6
     - Add support for Location class 1.3.0
     - Add icon for light rain (drizzle)

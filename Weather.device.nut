@@ -1,21 +1,31 @@
 // Weather Monitor
-// Copyright 2016-17, Tony Smith
+// Copyright 2016-18, Tony Smith
 
+// IMPORTS
 #import "../Location/location.class.nut"
-
 #import "../HT16K33Matrix/ht16k33matrix.class.nut"
 
+// EARLY-START CODE
 // Set up connectivity policy — this should come as early in the code as possible
 server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
-// CONSTANTS
+// Set up impOS update notification
+server.onshutdown(function(reason) {
+    if (reason == SHUTDOWN_NEWFIRMWARE) {
+        if (debug) server.log("New impOS release available - restarting in 1 minute");
+        imp.wakeup(60, function() {
+            server.restart();
+        });
+    }
+});
 
+// CONSTANTS
 const INITIAL_ANGLE = 270;
 const INITIAL_BRIGHT = 10;
-const RECONNECT_TIME = 900;
+const RECONNECT_TIMEOUT = 30;
+const RECONNECT_PAUSE = 300;
 
 // GLOBAL VARIABLES
-
 local locator = null;
 local matrix = null;
 local savedForecast = null;
@@ -24,14 +34,14 @@ local savedIcon = null;
 local localTemp = null;
 
 local iconset = {};
-local disData = "";
 local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
-local shownDisMessage = false;
-local debug = false;
+local disTime = 0;
+local disFlag = false;
+local disMessage = null;
+local debug = true;
 
 // DEVICE FUNCTIONS
-
 function intro() {
     // Fill in the matrix pixels from the outside in, in spiral fashion
     local x = 7, y = 0;
@@ -151,70 +161,63 @@ function displayWeather(data) {
 }
 
 // CONNECTIVITY FUNCTIONS
-
 function disHandler(reason) {
+    // Called if the server connection is broken or re-established
     if (reason != SERVER_CONNECTED) {
-        // Try to reconnect in 'RECONNECT_TIME' seconds
-        imp.wakeup(RECONNECT_TIME, retry);
-        if (disData.len() == 0) disData = "Disconnected at " + setTimeString() + ". Reason code: " + reason.tostring() + "\n";
+        // Server is not connected
+        if (!disFlag) {
+            // Record that the clock is disconnected
+            disFlag = true;
+            disTime = time();
 
-        if (!shownDisMessage) {
-            // Device is disconnected so signal this to the user
-            shownDisMessage = true;
+            // Signal disconnnection to the user...
             matrix.displayLine("Disconnected (code: " + reason + ")");
 
-            if (savedForecast) {
+            // ...and replay the last saved forecast
+            if (savedForecast != null) {
                 // 'savedForecast' will be null at first boot
                 imp.sleep(1.0);
                 matrix.displayLine(savedForecast + " ");
             }
 
-            if (savedIcon) {
+            if (savedIcon != null) {
                 // 'savedIcon' will be null if at first boot
                 imp.sleep(0.5);
                 matrix.displayIcon(savedIcon);
             }
         }
+
+        // Attempt to reconnect in 'RECONNECT_PAUSE' seconds
+        imp.wakeup(RECONNECT_PAUSE, function() {
+            server.connect(disHandler, RECONNECT_TIMEOUT);
+        });
     } else {
-        // Device is connected again, so update the display
-        shownDisMessage = false;
-        agent.send("weather.get.location", true);
-        if (debug) server.log(disData + "Reconnected at: " + setTimeString());
-        disData = "";
+        // Server is connected
+        if (disFlag) {
+            // Handle messaging if we were previously disconnected
+            server.log("Device went offline at " + setTimeString(disTime));
+            server.log("Reconnected at " + setTimeString());
+
+            // Reset the disconnected flags and saved data
+            disTime = 0;
+            disFlag = false;
+
+            // Re-acquire settings, Location
+            if (debug) server.log("Device requesting a forecast and device settings from agent");
+            agent.send("weather.get.settings", true);
+            agent.send("weather.get.location", true);
+        }
     }
 }
 
-function retry() {
-    // If we're not connected, attempt to re-connect
-    if (!server.isconnected()) {
-        server.connect(disHandler);
-    } else {
-        disHandler(SERVER_CONNECTED);
-    }
-}
-
-function setTimeString() {
-    local now = date();
+function setTimeString(time = null) {
+    local now = time != null ? time : date();
     return (now.hour.tostring() + ":" + now.min.tostring() + ":" + now.sec.tostring);
 }
 
-function politeness(reason) {
-    if (reason == SHUTDOWN_NEWFIRMWARE) {
-        if (debug) server.log("New impOS release available - restarting in 1 minute");
-        imp.wakeup(60, function() {
-            if (debug) server.log("Restarting...");
-            server.restart();
-        }.bindenv(this));
-    }
-}
-
+// START PROGRAM
 // Load in generic boot message code
 #include "../generic/bootmessage.nut"
-
-// START PROGRAM
-
-// Set up impOS update notification
-server.onshutdown(politeness);
 
 // Set up disconnection handler
 server.onunexpecteddisconnect(disHandler);
@@ -272,7 +275,7 @@ agent.on("weather.set.angle", function(a) {
     if (debug) server.log("Updating display angle (" + a + ")");
     matrix.init(bright, a);
     angle = a;
-    displayWeather(savedData);
+    if (savedData != null) displayWeather(savedData);
 });
 
 agent.on("weather.set.bright", function(b) {
@@ -280,7 +283,7 @@ agent.on("weather.set.bright", function(b) {
     if (debug) server.log("Updating display brightness (" + b + ")");
     matrix.init(b, angle);
     bright = b;
-    displayWeather(savedData);
+    if (savedData != null) displayWeather(savedData);
 });
 
 agent.on("weather.set.settings", function(data) {
@@ -309,7 +312,7 @@ agent.on("weather.set.settings", function(data) {
     if (change) {
         if (debug) server.log("Updating display based on new settings");
         matrix.init(bright, angle);
-        displayWeather(savedData);
+        if (savedData != null) displayWeather(savedData);
     }
 });
 
@@ -322,11 +325,15 @@ agent.on("weather.set.reboot", function(dummy) {
 // It will display this when it receives it.
 
 // If the server is not yet up, try again in 30s
-if (!server.isconnected()) {
-    disHandler(NOT_CONNECTED);
-} else {
+if (server.isconnected()) {
     // Tell the agent that the device is ready
-    if (debug) server.log("Requesting a forecast and device settings from agent");
+    if (debug) server.log("Device requesting a forecast and device settings from agent");
     agent.send("weather.get.settings", true);
     agent.send("weather.get.location", true);
+} else {
+    // Link down - try to connect to the server...
+    disFlag = true;
+    disTime = time();
+    disMessage = "Started up without a network connection at " + setTimeString();
+    server.connect(disHandler, RECONNECT_TIMEOUT);
 }
