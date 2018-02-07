@@ -157,7 +157,7 @@ function displayWeather(data) {
     }
 
     savedIcon = icon;
-    matrix.displayIcon(icon);
+    matrix.displayIcon(savedIcon);
 }
 
 // CONNECTIVITY FUNCTIONS
