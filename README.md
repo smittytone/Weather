@@ -1,4 +1,4 @@
-# Weather 3.6
+# Weather 3.7
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
@@ -51,6 +51,9 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes
 
+- 3.7
+    - Add support for Location class 1.4.1
+    - Assorted code tweaks, minor bug fixes made
 - 3.6
     - Add support for Location class 1.3.0
     - Add icon for light rain (drizzle)
