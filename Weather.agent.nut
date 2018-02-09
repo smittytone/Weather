@@ -285,6 +285,7 @@ local request = null;
 local weather = null;
 local locator = null;
 local mailer = null;
+local sensorAgentURL = null
 local weatherTimer = null;
 local restartTimer = null;
 local settings = null;
@@ -374,7 +375,7 @@ function forecastCallback(err, data) {
     // Get the indoors temperature from the sensor agent
     // This only works if you have set up an Environment Tail Sensor,
     // see https://github.com/smittytone/EnvTailTempLog
-    http.get(agent + "/state").sendasync(function(response) {
+    http.get(sensorAgentURL + "/state").sendasync(function(response) {
         if (response.statuscode == 200) {
             if ("body" in response) {
                 try {
@@ -493,7 +494,8 @@ function reset() {
 // weather = DarkSky("YOUR_API_KEY");
 // locator = Location("YOUR_API_KEY", debug);
 // mailer = IFTTT("YOUR_APPLET_ID");
-// agent <- "YOUR ENV TAIL AGENT URL";
+// agent = "YOUR ENV TAIL AGENT URL";
+// const APP_CODE = "YOUR APP UUID";
 
 // ...and comment out the following line:
 #import "~/Dropbox/Programming/Imp/Codes/weather.nut"
@@ -652,15 +654,15 @@ api.post("/debug", function(context) {
     context.send(200, (debug ? "Debug on" : "Debug off"));
 });
 
-// GET at /info returns device capabilities (EXPERIMENTAL)
-api.get("/info", function(context) {
-    local info = {};
-    info.app <- "761DDC8C-E7F5-40D4-87AC-9B06D91A672D";
-    info.watchsupported <- "true";
+// GET at /controller/info returns app data for Controller
+api.get("/controller/info", function(context) {
+    local info = { "appcode": APP_CODE,
+                   "watchsupported": "true" };
     context.send(200, http.jsonencode(info));
 });
 
-api.get("/state", function(context) {
+// GET at /controller/state returns device status for Controller
+api.get("/controller/state", function(context) {
     local data = device.isconnected() ? "1" : "0";
     context.send(200, data);
 });
