@@ -23,7 +23,7 @@ server.onshutdown(function(reason) {
 const INITIAL_ANGLE = 270;
 const INITIAL_BRIGHT = 10;
 const RECONNECT_TIMEOUT = 30;
-const RECONNECT_PAUSE = 300;
+const RECONNECT_DELAY = 120;
 
 // GLOBAL VARIABLES
 local locator = null;
@@ -36,9 +36,8 @@ local localTemp = null;
 local iconset = {};
 local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
-local disTime = 0;
-local disFlag = false;
-local disMessage = null;
+local discFlag = false;
+local discMessage = null;
 local debug = true;
 
 // DEVICE FUNCTIONS
@@ -161,14 +160,15 @@ function displayWeather(data) {
 }
 
 // CONNECTIVITY FUNCTIONS
-function disHandler(reason) {
+function discHandler(reason) {
     // Called if the server connection is broken or re-established
     if (reason != SERVER_CONNECTED) {
         // Server is not connected
-        if (!disFlag) {
+        if (!discFlag) {
             // Record that the clock is disconnected
-            disFlag = true;
-            disTime = time();
+            discFlag = true;
+            local now = date();
+            discMessage = "Went offline at " + now.hour + ":" + now.min + ":" + now.sec + ". Reason: " + reason;
 
             // Signal disconnnection to the user...
             matrix.displayLine("Disconnected (code: " + reason + ")");
@@ -188,25 +188,26 @@ function disHandler(reason) {
         }
 
         // Attempt to reconnect in 'RECONNECT_PAUSE' seconds
-        imp.wakeup(RECONNECT_PAUSE, function() {
-            server.connect(disHandler, RECONNECT_TIMEOUT);
+        imp.wakeup(RECONNECT_DELAY, function() {
+            server.connect(discHandler, RECONNECT_TIMEOUT);
         });
     } else {
         // Server is connected
-        if (disFlag) {
+        if (discFlag) {
             // Handle messaging if we were previously disconnected
-            server.log("Device went offline at " + setTimeString(disTime));
-            server.log("Reconnected at " + setTimeString());
-
-            // Reset the disconnected flags and saved data
-            disTime = 0;
-            disFlag = false;
+            if (debug) {
+                local now = date();
+                server.log(discMessage);
+                server.log("Back online at " + now.hour + ":" + now.min + ":" + now.sec);
+                server.log("Device requesting a forecast and device settings from agent");
+            }
 
             // Re-acquire settings, Location
-            if (debug) server.log("Device requesting a forecast and device settings from agent");
             agent.send("weather.get.settings", true);
             agent.send("weather.get.location", true);
         }
+
+        discFlag = false;
     }
 }
 
@@ -220,7 +221,7 @@ function setTimeString(time = null) {
 #include "../generic/bootmessage.nut"
 
 // Set up disconnection handler
-server.onunexpecteddisconnect(disHandler);
+server.onunexpecteddisconnect(discHandler);
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
