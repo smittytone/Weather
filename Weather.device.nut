@@ -23,7 +23,7 @@ server.onshutdown(function(reason) {
 const INITIAL_ANGLE = 270;
 const INITIAL_BRIGHT = 10;
 const RECONNECT_TIMEOUT = 30;
-const RECONNECT_DELAY = 120;
+const RECONNECT_DELAY = 60;
 
 // GLOBAL VARIABLES
 local locator = null;
@@ -220,7 +220,7 @@ function setTimeString(time = null) {
 // Load in generic boot message code
 #include "../generic/bootmessage.nut"
 
-// Set up disconnection handler
+// Set up the disconnection handler
 server.onunexpecteddisconnect(discHandler);
 
 // Set up hardware
