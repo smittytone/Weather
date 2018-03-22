@@ -189,7 +189,11 @@ function discHandler(reason) {
 
         // Attempt to reconnect in 'RECONNECT_PAUSE' seconds
         imp.wakeup(RECONNECT_DELAY, function() {
-            server.connect(discHandler, RECONNECT_TIMEOUT);
+            if (!server.isconnected()) {
+                server.connect(discHandler, RECONNECT_TIMEOUT);
+            } else {
+                discHandler(SERVER_CONNECTED);
+            }
         });
     } else {
         // Server is connected
