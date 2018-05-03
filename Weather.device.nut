@@ -4,6 +4,7 @@
 // IMPORTS
 #import "../Location/location.class.nut"
 #import "../HT16K33Matrix/ht16k33matrix.class.nut"
+#import "../generic/seriallog.nut"
 
 // EARLY-START CODE
 // Set up connectivity policy — this should come as early in the code as possible
@@ -12,7 +13,7 @@ server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 // Set up impOS update notification
 server.onshutdown(function(reason) {
     if (reason == SHUTDOWN_NEWFIRMWARE) {
-        if (debug) server.log("New impOS release available - restarting in 1 minute");
+        if (debug) serialLog.log("New impOS release available - restarting in 1 minute");
         imp.wakeup(60, function() {
             server.restart();
         });
@@ -117,7 +118,7 @@ function displayWeather(data) {
 
     // Bail if we have duff data passed in
     if (data == null) {
-        if (debug) server.log("Agent sent null data");
+        if (debug) serialLog.log("Agent sent null data");
         if (savedData) {
             data = savedData;
         } else {
@@ -142,6 +143,18 @@ function displayWeather(data) {
 
     // Draw text - spaces added to scroll everything off the matrix
     matrix.displayLine(s + "    ");
+
+    if (debug) {
+        // Hack to remove the local degrees code with a server.log()-friendly (UTF-8) alternative
+        local ps = 0;
+        s = s.slice(4);
+        do {
+            // NOTE The 0x7F is always followed by at least one character, 'c'
+            if (s[ps] == 0x7F) s = s.slice(0, ps) + "\xC2\xB0" + s.slice(ps + 1);
+            ps = ps + 1;
+        } while (ps < s.len());
+        serialLog.log(s);
+    }
 
     // Pause for half a second
     imp.sleep(0.5);
@@ -169,6 +182,7 @@ function discHandler(reason) {
             discFlag = true;
             local now = date();
             discMessage = "Went offline at " + now.hour + ":" + now.min + ":" + now.sec + ". Reason: " + reason;
+            if (debug) serialLog.log(discMessage);
 
             // Signal disconnnection to the user...
             matrix.displayLine("Disconnected (code: " + reason + ")");
@@ -201,9 +215,9 @@ function discHandler(reason) {
             // Handle messaging if we were previously disconnected
             if (debug) {
                 local now = date();
-                server.log(discMessage);
-                server.log("Back online at " + now.hour + ":" + now.min + ":" + now.sec);
-                server.log("Device requesting a forecast and device settings from agent");
+                serialLog.log(discMessage);
+                serialLog.log("Back online at " + now.hour + ":" + now.min + ":" + now.sec);
+                serialLog.log("Device requesting a forecast and device settings from agent");
             }
 
             // Re-acquire settings, Location
@@ -260,13 +274,13 @@ iconset.none <- [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
 // Set up agent interaction
 agent.on("weather.show.forecast", function(data) {
     // The agent has sent updated forecast data the for the device to display
-    if (debug) server.log("Forecast data received from agent");
+    if (debug) serialLog.log("Forecast data received from agent");
     displayWeather(data);
 });
 
 agent.on("weather.set.local.temp", function(temp) {
     // The agent has sent update local temperature data for display
-    if (debug) server.log("Local temperature data received from agent");
+    if (debug) serialLog.log("Local temperature data received from agent");
     localTemp = temp;
 });
 
@@ -277,7 +291,7 @@ agent.on("weather.set.debug", function(value) {
 
 agent.on("weather.set.angle", function(a) {
     // The user has updated the device brightness/display angle settings
-    if (debug) server.log("Updating display angle (" + a + ")");
+    if (debug) serialLog.log("Updating display angle (" + a + ")");
     matrix.init(bright, a);
     angle = a;
     if (savedData != null) displayWeather(savedData);
@@ -285,7 +299,7 @@ agent.on("weather.set.angle", function(a) {
 
 agent.on("weather.set.bright", function(b) {
     // The user has updated the device brightness/display angle settings
-    if (debug) server.log("Updating display brightness (" + b + ")");
+    if (debug) serialLog.log("Updating display brightness (" + b + ")");
     matrix.init(b, angle);
     bright = b;
     if (savedData != null) displayWeather(savedData);
@@ -293,7 +307,7 @@ agent.on("weather.set.bright", function(b) {
 
 agent.on("weather.set.settings", function(data) {
     // The agent has relayed the device settings
-    if (debug) server.log("Received device settings from agent");
+    if (debug) serialLog.log("Received device settings from agent");
     local change = false;
 
     if ("bright" in data) {
@@ -315,7 +329,7 @@ agent.on("weather.set.settings", function(data) {
     }
 
     if (change) {
-        if (debug) server.log("Updating display based on new settings");
+        if (debug) serialLog.log("Updating display based on new settings");
         matrix.init(bright, angle);
         if (savedData != null) displayWeather(savedData);
     }
@@ -332,7 +346,7 @@ agent.on("weather.set.reboot", function(dummy) {
 // If the server is not yet up, try again in 30s
 if (server.isconnected()) {
     // Tell the agent that the device is ready
-    if (debug) server.log("Device requesting a forecast and device settings from agent");
+    if (debug) serialLog.log("Device requesting a forecast and device settings from agent");
     agent.send("weather.get.settings", true);
     agent.send("weather.get.location", true);
 } else {
