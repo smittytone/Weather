@@ -12,13 +12,15 @@ server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 // Set up impOS update notification
 server.onshutdown(function(reason) {
-    if (reason == SHUTDOWN_NEWFIRMWARE) {
-        if (debug) serialLog.log("New impOS release available - restarting in 1 minute");
+    serialLog.log("Onshutdown called");
+    if (reason == SHUTDOWN_NEWFIRMWARE && debug) serialLog.log("New impOS release available - restarting in 1 minute");
+    if (reason == SHUTDOWN_NEWSQUIRREL && debug) serialLog.log("New Squirrel release available - restarting in 1 minute");
+    if (reason == SHUTDOWN_NEWSQUIRREL || reason == SHUTDOWN_NEWFIRMWARE) {
         imp.wakeup(60, function() {
             server.restart();
         });
     }
-});
+}.bindenv(this));
 
 // CONSTANTS
 const INITIAL_ANGLE = 270;
