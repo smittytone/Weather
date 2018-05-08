@@ -53,16 +53,18 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ### 3.8 ###
 
-- TODO
+- Add support for [Location class 1.5.0](https://github.com/smittytone/Location)
+- Add support for [serial logging](https://github.com/smittytone/generic/blob/master/seriallog.nut)
+- Add preliminary support for polite deployment
 
 ### 3.7 ###
 
-- Add support for Location class 1.4.1
+- Add support for [Location class 1.4.1](https://github.com/smittytone/Location)
 - Assorted code tweaks, minor bug fixes made
 
 ### 3.6 ###
 
-- Add support for Location class 1.3.0
+- Add support for [Location class 1.3.0](https://github.com/smittytone/Location)
 - Add icon for light rain (drizzle)
 - Nominate generic fonts for web UI in case web fonts can't be loaded
 - Adjust web UI
