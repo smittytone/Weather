@@ -134,27 +134,22 @@ function displayWeather(data) {
 
     // Display the weather by name, plus the temperature
     local s = "    " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + "  ";
+    local ls = "Forecast: " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + ". Temperature: ";
 
     // Add the temperature
     local f = data.temp.tofloat();
     s = s + format("Out: %.1f", f) + "\x7F" + "c";
-    if (localTemp != null) s = s + " In: " + localTemp + "\x7F" + "c";
-    savedForecast = s;
+    ls = ls + format("Out: %.1f", f) + "\xC2\xB0" + "c";
+    if (localTemp != null) {
+        s = s + " In: " + localTemp + "\x7F" + "c";
+        ls = ls + " In: " + localTemp + "\xC2\xB0" + "c";
+    }
 
     // Draw text - spaces added to scroll everything off the matrix
     matrix.displayLine(s + "    ");
+    savedForecast = s;
 
-    if (debug) {
-        // Hack to remove the local degrees code with a server.log()-friendly (UTF-8) alternative
-        local ps = 0;
-        s = s.slice(4);
-        do {
-            // NOTE The 0x7F is always followed by at least one character, 'c'
-            if (s[ps] == 0x7F) s = s.slice(0, ps) + "\xC2\xB0" + s.slice(ps + 1);
-            ps = ps + 1;
-        } while (ps < s.len());
-        serialLog.log(s);
-    }
+    if (debug) serialLog.log(ls);
 
     // Pause for half a second
     imp.sleep(0.5);
