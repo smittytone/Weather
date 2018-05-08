@@ -490,14 +490,13 @@ function reset() {
 
 // START PROGRAM
 
-// If you are NOT using Squinter, uncomment these lines and add your API keys...
+// If you are NOT using Squinter, uncomment the following lines and add your API keys...
 // weather = DarkSky("YOUR_API_KEY");
-// locator = Location("YOUR_API_KEY", debug);
+// locator = Location("YOUR_GOOGLE_API_KEY(s)", debug);
 // mailer = IFTTT("YOUR_APPLET_ID");
 // agent = "YOUR ENV TAIL AGENT URL";
-// const APP_CODE = "YOUR APP UUID";
+// const APP_CODE = "Weather";
 
-// ...and comment out the following line:
 #import "~/Dropbox/Programming/Imp/Codes/weather.nut"
 
 // Specify UK units for all forecasts, ie. temperatures in Celsius
