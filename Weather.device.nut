@@ -12,9 +12,9 @@ server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 // Set up impOS update notification
 server.onshutdown(function(reason) {
-    serialLog.log("Onshutdown called");
-    if (reason == SHUTDOWN_NEWFIRMWARE && debug) serialLog.log("New impOS release available - restarting in 1 minute");
-    if (reason == SHUTDOWN_NEWSQUIRREL && debug) serialLog.log("New Squirrel release available - restarting in 1 minute");
+    seriallog.log("server.onshutdown() called");
+    if (reason == SHUTDOWN_NEWFIRMWARE && debug) seriallog.log("New impOS release available - restarting in 1 minute");
+    if (reason == SHUTDOWN_NEWSQUIRREL && debug) seriallog.log("New Squirrel release available - restarting in 1 minute");
     if (reason == SHUTDOWN_NEWSQUIRREL || reason == SHUTDOWN_NEWFIRMWARE) {
         imp.wakeup(60, function() {
             server.restart();
@@ -120,7 +120,7 @@ function displayWeather(data) {
 
     // Bail if we have duff data passed in
     if (data == null) {
-        if (debug) serialLog.log("Agent sent null data");
+        if (debug) seriallog.log("Agent sent null data");
         if (savedData) {
             data = savedData;
         } else {
@@ -151,7 +151,7 @@ function displayWeather(data) {
     matrix.displayLine(s + "    ");
     savedForecast = s;
 
-    if (debug) serialLog.log(ls);
+    if (debug) seriallog.log(ls);
 
     // Pause for half a second
     imp.sleep(0.5);
@@ -179,7 +179,7 @@ function discHandler(reason) {
             discFlag = true;
             local now = date();
             discMessage = "Went offline at " + now.hour + ":" + now.min + ":" + now.sec + ". Reason: " + reason;
-            if (debug) serialLog.log(discMessage);
+            if (debug) seriallog.log(discMessage);
 
             // Signal disconnnection to the user...
             matrix.displayLine("Disconnected (code: " + reason + ")");
@@ -212,9 +212,9 @@ function discHandler(reason) {
             // Handle messaging if we were previously disconnected
             if (debug) {
                 local now = date();
-                serialLog.log(discMessage);
-                serialLog.log("Back online at " + now.hour + ":" + now.min + ":" + now.sec);
-                serialLog.log("Device requesting a forecast and device settings from agent");
+                seriallog.log(discMessage);
+                seriallog.log("Back online at " + now.hour + ":" + now.min + ":" + now.sec);
+                seriallog.log("Device requesting a forecast and device settings from agent");
             }
 
             // Re-acquire settings, Location
@@ -226,10 +226,6 @@ function discHandler(reason) {
     }
 }
 
-function setTimeString(time = null) {
-    local now = time != null ? time : date();
-    return (now.hour.tostring() + ":" + now.min.tostring() + ":" + now.sec.tostring);
-}
 
 // START PROGRAM
 // Load in generic boot message code
@@ -271,13 +267,13 @@ iconset.none <- [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
 // Set up agent interaction
 agent.on("weather.show.forecast", function(data) {
     // The agent has sent updated forecast data the for the device to display
-    if (debug) serialLog.log("Forecast data received from agent");
+    if (debug) seriallog.log("Forecast data received from agent");
     displayWeather(data);
 });
 
 agent.on("weather.set.local.temp", function(temp) {
     // The agent has sent update local temperature data for display
-    if (debug) serialLog.log("Local temperature data received from agent");
+    if (debug) seriallog.log("Local temperature data received from agent");
     localTemp = temp;
 });
 
@@ -288,7 +284,7 @@ agent.on("weather.set.debug", function(value) {
 
 agent.on("weather.set.angle", function(a) {
     // The user has updated the device brightness/display angle settings
-    if (debug) serialLog.log("Updating display angle (" + a + ")");
+    if (debug) seriallog.log("Updating display angle (" + a + ")");
     matrix.init(bright, a);
     angle = a;
     if (savedData != null) displayWeather(savedData);
@@ -296,7 +292,7 @@ agent.on("weather.set.angle", function(a) {
 
 agent.on("weather.set.bright", function(b) {
     // The user has updated the device brightness/display angle settings
-    if (debug) serialLog.log("Updating display brightness (" + b + ")");
+    if (debug) seriallog.log("Updating display brightness (" + b + ")");
     matrix.init(b, angle);
     bright = b;
     if (savedData != null) displayWeather(savedData);
@@ -304,7 +300,7 @@ agent.on("weather.set.bright", function(b) {
 
 agent.on("weather.set.settings", function(data) {
     // The agent has relayed the device settings
-    if (debug) serialLog.log("Received device settings from agent");
+    if (debug) seriallog.log("Received device settings from agent");
     local change = false;
 
     if ("bright" in data) {
@@ -326,7 +322,7 @@ agent.on("weather.set.settings", function(data) {
     }
 
     if (change) {
-        if (debug) serialLog.log("Updating display based on new settings");
+        if (debug) seriallog.log("Updating display based on new settings");
         matrix.init(bright, angle);
         if (savedData != null) displayWeather(savedData);
     }
@@ -343,13 +339,13 @@ agent.on("weather.set.reboot", function(dummy) {
 // If the server is not yet up, try again in 30s
 if (server.isconnected()) {
     // Tell the agent that the device is ready
-    if (debug) serialLog.log("Device requesting a forecast and device settings from agent");
+    if (debug) seriallog.log("Device requesting a forecast and device settings from agent");
     agent.send("weather.get.settings", true);
     agent.send("weather.get.location", true);
 } else {
     // Link down - try to connect to the server...
     disFlag = true;
     disTime = time();
-    disMessage = "Started up without a network connection at " + setTimeString();
+    disMessage = "Started up without a network connection at " + seriallog.settimestring();
     server.connect(disHandler, RECONNECT_TIMEOUT);
 }
