@@ -5,10 +5,42 @@
 #import "../Location/location.class.nut"
 #import "../HT16K33Matrix/ht16k33matrix.class.nut"
 #import "../generic/seriallog.nut"
+#include "../generic/bootmessage.nut"
+#import "../generic/disconnect.nut"
 
 // EARLY-START CODE
 // Set up connectivity policy — this should come as early in the code as possible
-server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
+disconnectionManager.eventCallback = function(event) {
+    if ("message" in event) seriallog.log(event.message);
+
+    if ("state" in event) {
+        if (event.event == "connected") {
+            // Re-acquire settings, Location
+            agent.send("weather.get.settings", true);
+            agent.send("weather.get.location", true);
+        } else if (event.event == "offline") {
+            // Notify of disconnection...
+            matrix.displayLine("Disconnected");
+
+            // ...and replay the last saved forecast
+            if (savedForecast != null) {
+                // 'savedForecast' will be null at first boot
+                imp.sleep(1.0);
+                matrix.displayLine(savedForecast + " ");
+            }
+
+            if (savedIcon != null) {
+                // 'savedIcon' will be null at first boot
+                imp.sleep(0.5);
+                matrix.displayIcon(savedIcon);
+            }
+        } else if (event.event == "connecting") {
+            // Notify of disconnection...
+            seriallog.log("Attempting to connect...");
+        }
+    }
+}.bindenv(this);
+disconnectionManager.start();
 
 // Set up impOS update notification
 server.onshutdown(function(reason) {
@@ -39,8 +71,6 @@ local localTemp = null;
 local iconset = {};
 local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
-local discFlag = false;
-local discMessage = null;
 local debug = true;
 
 // DEVICE FUNCTIONS
@@ -169,70 +199,7 @@ function displayWeather(data) {
     matrix.displayIcon(savedIcon);
 }
 
-// CONNECTIVITY FUNCTIONS
-function discHandler(reason) {
-    // Called if the server connection is broken or re-established
-    if (reason != SERVER_CONNECTED) {
-        // Server is not connected
-        if (!discFlag) {
-            // Record that the clock is disconnected
-            discFlag = true;
-            local now = date();
-            discMessage = "Went offline at " + now.hour + ":" + now.min + ":" + now.sec + ". Reason: " + reason;
-            if (debug) seriallog.log(discMessage);
-
-            // Signal disconnnection to the user...
-            matrix.displayLine("Disconnected (code: " + reason + ")");
-
-            // ...and replay the last saved forecast
-            if (savedForecast != null) {
-                // 'savedForecast' will be null at first boot
-                imp.sleep(1.0);
-                matrix.displayLine(savedForecast + " ");
-            }
-
-            if (savedIcon != null) {
-                // 'savedIcon' will be null if at first boot
-                imp.sleep(0.5);
-                matrix.displayIcon(savedIcon);
-            }
-        }
-
-        // Attempt to reconnect in 'RECONNECT_PAUSE' seconds
-        imp.wakeup(RECONNECT_DELAY, function() {
-            if (!server.isconnected()) {
-                server.connect(discHandler, RECONNECT_TIMEOUT);
-            } else {
-                discHandler(SERVER_CONNECTED);
-            }
-        });
-    } else {
-        // Server is connected
-        if (discFlag) {
-            // Handle messaging if we were previously disconnected
-            if (debug) {
-                local now = date();
-                seriallog.log(discMessage);
-                seriallog.log("Back online at " + now.hour + ":" + now.min + ":" + now.sec);
-                seriallog.log("Device requesting a forecast and device settings from agent");
-            }
-
-            // Re-acquire settings, Location
-            agent.send("weather.get.settings", true);
-            agent.send("weather.get.location", true);
-        }
-
-        discFlag = false;
-    }
-}
-
-
 // START PROGRAM
-// Load in generic boot message code
-#include "../generic/bootmessage.nut"
-
-// Set up the disconnection handler
-server.onunexpecteddisconnect(discHandler);
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
@@ -334,9 +301,7 @@ agent.on("weather.set.reboot", function(dummy) {
 });
 
 // At this point, the device will wait for a forecast from the agent.
-// It will display this when it receives it.
-
-// If the server is not yet up, try again in 30s
+// It will display this when it receives it, but we should check that the server is there
 if (server.isconnected()) {
     // Tell the agent that the device is ready
     if (debug) seriallog.log("Device requesting a forecast and device settings from agent");
@@ -344,8 +309,5 @@ if (server.isconnected()) {
     agent.send("weather.get.location", true);
 } else {
     // Link down - try to connect to the server...
-    disFlag = true;
-    disTime = time();
-    disMessage = "Started up without a network connection at " + seriallog.settimestring();
-    server.connect(disHandler, RECONNECT_TIMEOUT);
+    disconnectionManager.connect();
 }
