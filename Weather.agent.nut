@@ -353,14 +353,6 @@ function forecastCallback(err, data) {
                 sendData.temp <- item.apparentTemperature;
                 if (debug) server.log("Sending data to device");
                 device.send("weather.show.forecast", sendData);
-
-                // Log the outlook
-                if (debug) {
-                    local celsius = sendData.temp.tofloat();
-                    local message = "Summary: " + item.summary + " (" + sendData.cast + ") Temperature: " + format("%.1f", celsius) + "C";
-                    server.log(message);
-                }
-
                 savedData = sendData;
             }
         }
@@ -379,7 +371,7 @@ function forecastCallback(err, data) {
         if (response.statuscode == 200) {
             if ("body" in response) {
                 try {
-                    if (debug) server.log("Local temperature data received from sensor");
+                    if (debug) server.log("Inside temperature data received from remote sensor");
                     local data = http.jsondecode(response.body);
                     device.send("weather.set.local.temp", data.temp);
                 } catch (error) {
@@ -388,7 +380,7 @@ function forecastCallback(err, data) {
             }
         } else {
             if (response.statuscode == 404) {
-                if (debug) server.log("Sensor not available");
+                if (debug) server.log("Remote sensor not available");
             } else {
                 if (debug) server.error("Response from sensor agent: " + response.statuscode + " - " + response.body);
             }

@@ -5,7 +5,7 @@
 #import "../Location/location.class.nut"
 #import "../HT16K33Matrix/ht16k33matrix.class.nut"
 #import "../generic/seriallog.nut"
-#include "../generic/bootmessage.nut"
+#import "../generic/bootmessage.nut"
 #import "../generic/disconnect.nut"
 
 // EARLY-START CODE
