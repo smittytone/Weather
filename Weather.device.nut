@@ -304,7 +304,7 @@ agent.on("weather.set.reboot", function(dummy) {
 // It will display this when it receives it, but we should check that the server is there
 if (server.isconnected()) {
     // Tell the agent that the device is ready
-    if (debug) seriallog.log("Device requesting a forecast and device settings from agent");
+    if (debug) seriallog.log("Requesting a forecast and settings from agent");
     agent.send("weather.get.settings", true);
     agent.send("weather.get.location", true);
 } else {
