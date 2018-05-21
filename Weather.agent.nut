@@ -3,7 +3,7 @@
 
 // IMPORTS
 #require "DarkSky.class.nut:1.0.1"
-#require "Rocky.class.nut:2.0.0"
+#require "Rocky.class.nut:2.0.1"
 #require "IFTTT.class.nut:1.0.0"
 #import "../Location/location.class.nut"
 
@@ -680,6 +680,3 @@ restartTimer = imp.wakeup(AGENT_START_TIME, function() {
         }
     }
 });
-
-
-
