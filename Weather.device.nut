@@ -13,12 +13,12 @@
 disconnectionManager.eventCallback = function(event) {
     if ("message" in event) seriallog.log(event.message);
 
-    if ("state" in event) {
-        if (event.event == "connected") {
+    if ("type" in event) {
+        if (event.type == "connected") {
             // Re-acquire settings, Location
             agent.send("weather.get.settings", true);
             agent.send("weather.get.location", true);
-        } else if (event.event == "offline") {
+        } else if (event.type == "disconnected") {
             // Notify of disconnection...
             matrix.displayLine("Disconnected");
 
@@ -34,7 +34,7 @@ disconnectionManager.eventCallback = function(event) {
                 imp.sleep(0.5);
                 matrix.displayIcon(savedIcon);
             }
-        } else if (event.event == "connecting") {
+        } else if (event.type == "connecting") {
             // Notify of disconnection...
             seriallog.log("Attempting to connect...");
         }
