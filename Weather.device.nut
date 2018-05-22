@@ -8,51 +8,6 @@
 #import "../generic/bootmessage.nut"
 #import "../generic/disconnect.nut"
 
-// EARLY-START CODE
-// Set up connectivity policy — this should come as early in the code as possible
-disconnectionManager.eventCallback = function(event) {
-    if ("message" in event) seriallog.log(event.message);
-
-    if ("type" in event) {
-        if (event.type == "connected") {
-            // Re-acquire settings, Location
-            agent.send("weather.get.settings", true);
-            agent.send("weather.get.location", true);
-        } else if (event.type == "disconnected") {
-            // Notify of disconnection...
-            matrix.displayLine("Disconnected");
-
-            // ...and replay the last saved forecast
-            if (savedForecast != null) {
-                // 'savedForecast' will be null at first boot
-                imp.sleep(1.0);
-                matrix.displayLine(savedForecast + " ");
-            }
-
-            if (savedIcon != null) {
-                // 'savedIcon' will be null at first boot
-                imp.sleep(0.5);
-                matrix.displayIcon(savedIcon);
-            }
-        } else if (event.type == "connecting") {
-            // Notify of disconnection...
-            seriallog.log("Attempting to connect...");
-        }
-    }
-}.bindenv(this);
-disconnectionManager.start();
-
-// Set up impOS update notification
-server.onshutdown(function(reason) {
-    seriallog.log("server.onshutdown() called");
-    if (reason == SHUTDOWN_NEWFIRMWARE && debug) seriallog.log("New impOS release available - restarting in 1 minute");
-    if (reason == SHUTDOWN_NEWSQUIRREL && debug) seriallog.log("New Squirrel release available - restarting in 1 minute");
-    if (reason == SHUTDOWN_NEWSQUIRREL || reason == SHUTDOWN_NEWFIRMWARE) {
-        imp.wakeup(60, function() {
-            server.restart();
-        });
-    }
-}.bindenv(this));
 
 // CONSTANTS
 const INITIAL_ANGLE = 270;
@@ -73,6 +28,7 @@ local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
 local debug = true;
 
+
 // DEVICE FUNCTIONS
 function intro() {
     // Fill in the matrix pixels from the outside in, in spiral fashion
@@ -80,6 +36,7 @@ function intro() {
     local dx = 0, dy = 1;
     local mx = 6, my = 7;
     local nx = 0, ny = 0;
+
 
     for (local i = 0 ; i < 64 ; ++i) {
         matrix.plot(x, y, 1).draw();
@@ -200,6 +157,52 @@ function displayWeather(data) {
 }
 
 // START PROGRAM
+
+// EARLY-START CODE
+// Set up connectivity policy — this should come as early in the code as possible
+disconnectionManager.eventCallback = function(event) {
+    if ("message" in event) seriallog.log(event.message);
+
+    if ("type" in event) {
+        if (event.type == "connected") {
+            // Re-acquire settings, Location
+            agent.send("weather.get.settings", true);
+            agent.send("weather.get.location", true);
+        } else if (event.type == "disconnected") {
+            // Notify of disconnection...
+            matrix.displayLine("Disconnected");
+
+            // ...and replay the last saved forecast
+            if (savedForecast != null) {
+                // 'savedForecast' will be null at first boot
+                imp.sleep(1.0);
+                matrix.displayLine(savedForecast + " ");
+            }
+
+            if (savedIcon != null) {
+                // 'savedIcon' will be null at first boot
+                imp.sleep(0.5);
+                matrix.displayIcon(savedIcon);
+            }
+        } else if (event.type == "connecting") {
+            // Notify of disconnection...
+            seriallog.log("Attempting to connect...");
+        }
+    }
+};
+disconnectionManager.start();
+
+// Set up impOS update notification
+server.onshutdown(function(reason) {
+    seriallog.log("server.onshutdown() called");
+    if (reason == SHUTDOWN_NEWFIRMWARE && debug) seriallog.log("New impOS release available - restarting in 1 minute");
+    if (reason == SHUTDOWN_NEWSQUIRREL && debug) seriallog.log("New Squirrel release available - restarting in 1 minute");
+    if (reason == SHUTDOWN_NEWSQUIRREL || reason == SHUTDOWN_NEWFIRMWARE) {
+        imp.wakeup(60, function() {
+            server.restart();
+        });
+    }
+});
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
