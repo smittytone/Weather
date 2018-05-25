@@ -53,7 +53,8 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 - 3.8 **In Development**
     - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
-      - Update Web UI based on Bootstrap
+        - Update Web UI based on Bootstrap
+        - Separate out Web UI into own file for clarity
     - Add support for [Location class 1.5.0](https://github.com/smittytone/Location)
     - Add support for [serial logging](https://github.com/smittytone/generic/blob/master/seriallog.nut)
     - Update to [JQuery 3.3.1](https://jquery.com)
