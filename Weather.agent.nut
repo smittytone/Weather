@@ -11,7 +11,7 @@
 const REFRESH_TIME = 900;
 const AGENT_START_TIME = 120;
 // If you are NOT using Squinter or a similar tool, replace the #import statement below
-// with the contents of the named file (matrixclock_ui.html)
+// with the contents of the named file (weather_ui.html)
 const HTML_STRING = @"
 #import "weather_ui.html"
 ";
