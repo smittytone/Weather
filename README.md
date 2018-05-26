@@ -58,6 +58,7 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
     - Add support for [Location class 1.5.0](https://github.com/smittytone/Location)
     - Add support for [serial logging](https://github.com/smittytone/generic/blob/master/seriallog.nut)
     - Update to [JQuery 3.3.1](https://jquery.com)
+    - Prevent Ajax XHR cacheing
     - Add preliminary support for polite deployment
 - 3.7
     - Add support for [Location class 1.4.1](https://github.com/smittytone/Location)

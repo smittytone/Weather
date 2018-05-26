@@ -187,7 +187,8 @@
           if (callback) {
             callback(response);
           }
-        }
+        },
+        cache: false
       });
     }
 
@@ -199,7 +200,8 @@
         data: JSON.stringify({ 'action' : 'update' }),
         success : function(response) {
           getState(updateReadout);
-        }
+        },
+        cache: false
       });
     }
 
@@ -211,7 +213,8 @@
         data: JSON.stringify({ 'action' : 'reboot' }),
         success : function(response) {
           getState(updateReadout);
-        }
+        },
+        cache: false
       });
     }
 
@@ -223,7 +226,8 @@
         data: JSON.stringify({ 'action' : 'reset' }),
         success : function(response) {
           getState(updateReadout);
-        }
+        },
+        cache: false
       });
     }
 
@@ -251,6 +255,7 @@
         url : agenturl + '/settings',
         type: 'POST',
         data: JSON.stringify({ 'angle' : s }),
+        cache: false
       });
     }
 
@@ -259,7 +264,8 @@
       $.ajax({
         url : agenturl + '/settings',
         type: 'POST',
-        data: JSON.stringify({ 'bright' : $('#brightness').val() })
+        data: JSON.stringify({ 'bright' : $('#brightness').val() }),
+        cache: false
       });
     }
 
@@ -268,7 +274,8 @@
       $.ajax({
         url : agenturl + '/debug',
         type: 'POST',
-        data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
+        data: JSON.stringify({ 'debug' : document.getElementById('debug').checked }),
+        cache: false
       });
     }
     </script>
