@@ -300,7 +300,13 @@ agent.on("weather.set.settings", function(data) {
 
 agent.on("weather.set.reboot", function(dummy) {
     // The user has asked the device to reboot
-    server.restart();
+    local a = split(imp.getsoftwareversion(), "-");
+    local v = a[2].tofloat();
+    if (v > 38.0) {
+      imp.reset();
+    } else {
+      server.restart();
+    }
 });
 
 // At this point, the device will wait for a forecast from the agent.
