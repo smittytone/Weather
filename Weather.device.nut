@@ -4,26 +4,16 @@
 // IMPORTS
 #import "../Location/location.class.nut"
 #import "../HT16K33Matrix/ht16k33matrix.class.nut"
+#import "../generic/seriallog.nut"
+#import "../generic/bootmessage.nut"
+#import "../generic/disconnect.nut"
 
-// EARLY-START CODE
-// Set up connectivity policy — this should come as early in the code as possible
-server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
-
-// Set up impOS update notification
-server.onshutdown(function(reason) {
-    if (reason == SHUTDOWN_NEWFIRMWARE) {
-        if (debug) server.log("New impOS release available - restarting in 1 minute");
-        imp.wakeup(60, function() {
-            server.restart();
-        });
-    }
-});
 
 // CONSTANTS
 const INITIAL_ANGLE = 270;
 const INITIAL_BRIGHT = 10;
 const RECONNECT_TIMEOUT = 30;
-const RECONNECT_PAUSE = 300;
+const RECONNECT_DELAY = 60;
 
 // GLOBAL VARIABLES
 local locator = null;
@@ -36,10 +26,8 @@ local localTemp = null;
 local iconset = {};
 local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
-local disTime = 0;
-local disFlag = false;
-local disMessage = null;
 local debug = true;
+
 
 // DEVICE FUNCTIONS
 function intro() {
@@ -48,6 +36,7 @@ function intro() {
     local dx = 0, dy = 1;
     local mx = 6, my = 7;
     local nx = 0, ny = 0;
+
 
     for (local i = 0 ; i < 64 ; ++i) {
         matrix.plot(x, y, 1).draw();
@@ -118,7 +107,7 @@ function displayWeather(data) {
 
     // Bail if we have duff data passed in
     if (data == null) {
-        if (debug) server.log("Agent sent null data");
+        if (debug) seriallog.log("Agent sent null data");
         if (savedData) {
             data = savedData;
         } else {
@@ -134,15 +123,22 @@ function displayWeather(data) {
 
     // Display the weather by name, plus the temperature
     local s = "    " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + "  ";
+    local ls = "Forecast: " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + ". Temperature: ";
 
     // Add the temperature
     local f = data.temp.tofloat();
     s = s + format("Out: %.1f", f) + "\x7F" + "c";
-    if (localTemp != null) s = s + " In: " + localTemp + "\x7F" + "c";
-    savedForecast = s;
+    ls = ls + format("Out: %.1f", f) + "\xC2\xB0" + "c";
+    if (localTemp != null) {
+        s = s + " In: " + localTemp + "\x7F" + "c";
+        ls = ls + " In: " + localTemp + "\xC2\xB0" + "c";
+    }
 
     // Draw text - spaces added to scroll everything off the matrix
     matrix.displayLine(s + "    ");
+    savedForecast = s;
+
+    if (debug) seriallog.log(ls);
 
     // Pause for half a second
     imp.sleep(0.5);
@@ -157,21 +153,24 @@ function displayWeather(data) {
     }
 
     savedIcon = icon;
-    matrix.displayIcon(icon);
+    matrix.displayIcon(savedIcon);
 }
 
-// CONNECTIVITY FUNCTIONS
-function disHandler(reason) {
-    // Called if the server connection is broken or re-established
-    if (reason != SERVER_CONNECTED) {
-        // Server is not connected
-        if (!disFlag) {
-            // Record that the clock is disconnected
-            disFlag = true;
-            disTime = time();
+// START PROGRAM
 
-            // Signal disconnnection to the user...
-            matrix.displayLine("Disconnected (code: " + reason + ")");
+// EARLY-START CODE
+// Set up connectivity policy — this should come as early in the code as possible
+disconnectionManager.eventCallback = function(event) {
+    if ("message" in event) seriallog.log(event.message);
+
+    if ("type" in event) {
+        if (event.type == "connected") {
+            // Re-acquire settings, Location
+            agent.send("weather.get.settings", true);
+            agent.send("weather.get.location", true);
+        } else if (event.type == "disconnected") {
+            // Notify of disconnection...
+            matrix.displayLine("Disconnected");
 
             // ...and replay the last saved forecast
             if (savedForecast != null) {
@@ -181,46 +180,29 @@ function disHandler(reason) {
             }
 
             if (savedIcon != null) {
-                // 'savedIcon' will be null if at first boot
+                // 'savedIcon' will be null at first boot
                 imp.sleep(0.5);
                 matrix.displayIcon(savedIcon);
             }
-        }
-
-        // Attempt to reconnect in 'RECONNECT_PAUSE' seconds
-        imp.wakeup(RECONNECT_PAUSE, function() {
-            server.connect(disHandler, RECONNECT_TIMEOUT);
-        });
-    } else {
-        // Server is connected
-        if (disFlag) {
-            // Handle messaging if we were previously disconnected
-            server.log("Device went offline at " + setTimeString(disTime));
-            server.log("Reconnected at " + setTimeString());
-
-            // Reset the disconnected flags and saved data
-            disTime = 0;
-            disFlag = false;
-
-            // Re-acquire settings, Location
-            if (debug) server.log("Device requesting a forecast and device settings from agent");
-            agent.send("weather.get.settings", true);
-            agent.send("weather.get.location", true);
+        } else if (event.type == "connecting") {
+            // Notify of disconnection...
+            seriallog.log("Attempting to connect...");
         }
     }
-}
+};
+disconnectionManager.start();
 
-function setTimeString(time = null) {
-    local now = time != null ? time : date();
-    return (now.hour.tostring() + ":" + now.min.tostring() + ":" + now.sec.tostring);
-}
-
-// START PROGRAM
-// Load in generic boot message code
-#include "../generic/bootmessage.nut"
-
-// Set up disconnection handler
-server.onunexpecteddisconnect(disHandler);
+// Set up impOS update notification
+server.onshutdown(function(reason) {
+    seriallog.log("server.onshutdown() called");
+    if (reason == SHUTDOWN_NEWFIRMWARE && debug) seriallog.log("New impOS release available - restarting in 1 minute");
+    if (reason == SHUTDOWN_NEWSQUIRREL && debug) seriallog.log("New Squirrel release available - restarting in 1 minute");
+    if (reason == SHUTDOWN_NEWSQUIRREL || reason == SHUTDOWN_NEWFIRMWARE) {
+        imp.wakeup(60, function() {
+            server.restart();
+        });
+    }
+});
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
@@ -255,13 +237,13 @@ iconset.none <- [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
 // Set up agent interaction
 agent.on("weather.show.forecast", function(data) {
     // The agent has sent updated forecast data the for the device to display
-    if (debug) server.log("Forecast data received from agent");
+    if (debug) seriallog.log("Forecast data received from agent");
     displayWeather(data);
 });
 
 agent.on("weather.set.local.temp", function(temp) {
     // The agent has sent update local temperature data for display
-    if (debug) server.log("Local temperature data received from agent");
+    if (debug) seriallog.log("Local temperature data received from agent");
     localTemp = temp;
 });
 
@@ -272,7 +254,7 @@ agent.on("weather.set.debug", function(value) {
 
 agent.on("weather.set.angle", function(a) {
     // The user has updated the device brightness/display angle settings
-    if (debug) server.log("Updating display angle (" + a + ")");
+    if (debug) seriallog.log("Updating display angle (" + a + ")");
     matrix.init(bright, a);
     angle = a;
     if (savedData != null) displayWeather(savedData);
@@ -280,7 +262,7 @@ agent.on("weather.set.angle", function(a) {
 
 agent.on("weather.set.bright", function(b) {
     // The user has updated the device brightness/display angle settings
-    if (debug) server.log("Updating display brightness (" + b + ")");
+    if (debug) seriallog.log("Updating display brightness (" + b + ")");
     matrix.init(b, angle);
     bright = b;
     if (savedData != null) displayWeather(savedData);
@@ -288,7 +270,7 @@ agent.on("weather.set.bright", function(b) {
 
 agent.on("weather.set.settings", function(data) {
     // The agent has relayed the device settings
-    if (debug) server.log("Received device settings from agent");
+    if (debug) seriallog.log("Received device settings from agent");
     local change = false;
 
     if ("bright" in data) {
@@ -310,7 +292,7 @@ agent.on("weather.set.settings", function(data) {
     }
 
     if (change) {
-        if (debug) server.log("Updating display based on new settings");
+        if (debug) seriallog.log("Updating display based on new settings");
         matrix.init(bright, angle);
         if (savedData != null) displayWeather(savedData);
     }
@@ -318,22 +300,23 @@ agent.on("weather.set.settings", function(data) {
 
 agent.on("weather.set.reboot", function(dummy) {
     // The user has asked the device to reboot
-    server.restart();
+    local a = split(imp.getsoftwareversion(), "-");
+    local v = a[2].tofloat();
+    if (v > 38.0) {
+      imp.reset();
+    } else {
+      server.restart();
+    }
 });
 
 // At this point, the device will wait for a forecast from the agent.
-// It will display this when it receives it.
-
-// If the server is not yet up, try again in 30s
+// It will display this when it receives it, but we should check that the server is there
 if (server.isconnected()) {
     // Tell the agent that the device is ready
-    if (debug) server.log("Device requesting a forecast and device settings from agent");
+    if (debug) seriallog.log("Requesting a forecast and settings from agent");
     agent.send("weather.get.settings", true);
     agent.send("weather.get.location", true);
 } else {
     // Link down - try to connect to the server...
-    disFlag = true;
-    disTime = time();
-    disMessage = "Started up without a network connection at " + setTimeString();
-    server.connect(disHandler, RECONNECT_TIMEOUT);
+    disconnectionManager.connect();
 }

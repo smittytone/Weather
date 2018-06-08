@@ -3,288 +3,25 @@
 
 // IMPORTS
 #require "DarkSky.class.nut:1.0.1"
-#require "Rocky.class.nut:2.0.0"
+#require "Rocky.class.nut:2.0.1"
 #require "IFTTT.class.nut:1.0.0"
 #import "../Location/location.class.nut"
 
 // CONSTANTS
 const REFRESH_TIME = 900;
 const AGENT_START_TIME = 120;
-const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
-<html>
-    <head>
-        <title>Weather Monitor</title>
-        <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
-        <link href='https://fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
-        <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-weather.png'>
-        <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-weather.ico'>
-        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-        <style>
-            .center { margin-left: auto;
-                      margin-right: auto;
-                      margin-bottom: auto;
-                      margin-top: auto; }
-            .showhide { -webkit-touch-callout: none;
-                        -webkit-user-select: none;
-                        -khtml-user-select: none;
-                        -moz-user-select: none;
-                        -ms-user-select: none;
-                        user-select: none;
-                        cursor: pointer }
-            body { background-color: #b30000; }
-            p {color: white; font-family: Abel, sans-serif; font-size: 18px}
-            p.error-message {color:#ffcc00; font-size: 16px}
-            p.colophon {font-size: 14px; text-align: center}
-            h2 {color: #ffcc00; font-family: Abel, sans-serif; font-weight:bold; font-size: 36px}
-            h4 {color: white; font-family: Abel, sans-serif; font-size: 22px}
-            td {color: white; font-family: Abel, sans-serif}
-            hr {border-color: #ffcc00}
-            .tabborder {width: 25%%}
-            .tabcontent {width: 50%%}
-            .uicontent {border: 2px solid #ffcc00}
-            .container {padding: 20px}
-
-            @media only screen and (max-width: 640px) {
-                .tabborder {width: 5%%}
-                .tabcontent {width: 90%%}
-                .container {padding: 5px}
-                .uicontent {border: 0px}
-            }
-        </style>
-    </head>
-    <body>
-        <div class='container'>
-            <div class='uicontent'>
-                <h2 align='center'>Weather Monitor<br>&nbsp;</h2>
-                <div class='current-status-readout' align='center'>
-                    <h4 class='temp-status'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
-                    <h4 class='outlook-status'>Current Outlook: <span></span></h4>
-                    <p class='location-status'>Device Location: <span></span></p>
-                    <p class='error-message'><i><span></span></i></p>
-                </div>
-                <br>
-                <div class='controls-area' align='center'>
-                    <div class='update-button' style='color:dimGrey;font-family:Abel,sans-serif'>
-                        <button type='submit' id='updater' style='height:32px;width:200px'>Update Monitor</button><br>&nbsp;
-                    </div>
-                    <div class='reboot-button' style='color:dimGrey;font-family:Abel,sans-serif'>
-                        <button type='submit' id='rebooter' style='height:32px;width:200px'>Restart Monitor</button><br>&nbsp;
-                    </div>
-                </div>
-                <div class='settings-area' align='center'>
-                    <table width='100%%'>
-                        <tr>
-                            <td class='tabborder'>&nbsp;</td>
-                            <td class='tabcontent'>
-                                <div class='settings' style='background-color:#a30000;height:28px'>
-                                    <p align='center'>Settings</p>
-                                </div>
-                                <div class='angle-radio'>
-                                    <p>Display Angle</p>
-                                    <input type='radio' name='angle' id='angle0' value='0' checked> 0&deg;<br>
-                                    <input type='radio' name='angle' id='angle90' value='90'> 90&deg;<br>
-                                    <input type='radio' name='angle' id='angle180' value='180'> 180&deg;<br>
-                                    <input type='radio' name='angle' id='angle270' value='270'> 270&deg;
-                                </div>
-                                <hr>
-                                <div class='slider'>
-                                    <p class='brightness-status'>Brightness</p>
-                                    <input type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
-                                    <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
-                                    <p class='brightness-status' align='right'>Brightness: <span></span></p>
-                                </div>
-                                <div class='advancedsettings' style='background-color:#a30000'>
-                                    <p class='showhide' align='center'>Show Advanced Settings</p>
-                                    <div class='advanced' align='center'>
-                                        <br>
-                                        <div class='debug-checkbox' style='color:white;font-family:Abel,sans-serif'>
-                                            <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
-                                        </div>
-                                        <br>
-                                        <div class='reset-button' style='color:dimGrey;font-family:Abel,sans-serif'>
-                                            <button type='submit' id='resetter' style='height:32px;width:200px'>Reset Monitor</button><br>&nbsp;
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td id='tabborder'>&nbsp;</td>
-                        </tr>
-                    </table>
-                </div>
-                <p class='colophon'>Weather Monitor &copy; Tony Smith, 2014-17<br>&nbsp;<br><a href='https://github.com/smittytone/Weather' target='_new'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
-            </div>
-        </div>
-
-        <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
-        <script>
-        $('.advanced').hide();
-
-        // Variables
-        var agenturl = '%s';
-        var isMobile = false;
-
-        // Set initial error message
-        $('.error-message span').text('Forecast updates automatically every two minutes');
-
-        // Get initial readings
-        getState(updateReadout);
-
-        // Set UI click actions
-        $('.update-button button').click(update);
-        $('.reboot-button button').click(reboot);
-        $('.reset-button button').click(reset);
-        $('#angle0').click(setangle);
-        $('#angle90').click(setangle);
-        $('#angle180').click(setangle);
-        $('#angle270').click(setangle);
-        $('#debug').click(setdebug);
-
-        var slider = document.getElementById('brightness');
-        $('.brightness-status span').text(slider.value);
-        slider.addEventListener('mouseup', updateSlider);
-        slider.addEventListener('touchend', updateSlider);
-
-        $('.showhide').click(function(){
-            $('.advanced').toggle();
-            var isVis = $('.advanced').is(':visible');
-            $('.showhide').text(isVis ? 'Hide Advanced Settings' : 'Show Advanced Settings');
-        });
-
-        // Functions
-        function updateSlider() {
-            $('.brightness-status span').text($('#brightness').val());
-            setbright();
-        }
-
-        function updateReadout(data) {
-            if (data.error) {
-                $('.error-message span').text(data.error);
-            } else {
-                $('.temp-status span').text(data.temp);
-                $('.outlook-status span').text(data.cast);
-                $('.location-status span').text(data.location.place + ' (' + data.location.long + ', ' + data.location.lat + ')');
-                $('.error-message span').text('Forecast updates automatically every two minutes');
-
-                $('[name=angle]').each(function(i, v) {
-                    if (data.angle == $(this).val()) {
-                        $(this).prop('checked', true);
-                    }
-                });
-
-                $('#brightness').val(data.bright);
-                $('.brightness-status span').text(data.bright);
-                document.getElementById('debug').checked = data.debug;
-            }
-
-            setTimeout(function() {
-                getState(updateReadout);
-            }, 120000);
-        }
-
-        function getState(callback) {
-            // Request the current data
-            $.ajax({
-                url : agenturl + '/current',
-                type: 'GET',
-                success : function(response) {
-                    response = JSON.parse(response);
-                    if (callback) {
-                        callback(response);
-                    }
-                }
-            });
-        }
-
-        function update() {
-            // Trigger a forecast update
-            $.ajax({
-                url : agenturl + '/update',
-                type: 'POST',
-                data: JSON.stringify({ 'action' : 'update' }),
-                success : function(response) {
-                    getState(updateReadout);
-                }
-            });
-        }
-
-        function reboot() {
-            // Trigger a device restart
-            $.ajax({
-                url : agenturl + '/update',
-                type: 'POST',
-                data: JSON.stringify({ 'action' : 'reboot' }),
-                success : function(response) {
-                    getState(updateReadout);
-                }
-            });
-        }
-
-        function reset() {
-            // Trigger a device reset
-            $.ajax({
-                url : agenturl + '/update',
-                type: 'POST',
-                data: JSON.stringify({ 'action' : 'reset' }),
-                success : function(response) {
-                    getState(updateReadout);
-                }
-            });
-        }
-
-        function setangle() {
-            // Set the device screen angle
-            var s;
-            var r = document.getElementsByName('angle');
-            for (var i = 0, length = r.length ; i < length ; i++) {
-                if (r[i].checked) {
-                    s = i;
-                    break;
-                }
-            }
-
-            // Set the correct angle based on the button checked
-            if (s == 1) {
-                s = 90;
-            } else if (s == 2) {
-                s = 180;
-            } else if (s == 3) {
-                s = 270;
-            }
-
-            $.ajax({
-                url : agenturl + '/settings',
-                type: 'POST',
-                data: JSON.stringify({ 'angle' : s }),
-            });
-        }
-
-        function setbright() {
-            // Set the device screen brightness
-            $.ajax({
-                url : agenturl + '/settings',
-                type: 'POST',
-                data: JSON.stringify({ 'bright' : $('#brightness').val() })
-            });
-        }
-
-        function setdebug() {
-            // Tell the device to enter or leave debug mode
-            $.ajax({
-                url : agenturl + '/debug',
-                type: 'POST',
-                data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
-            });
-        }
-
-        </script>
-    </body>
-</html>";
+// If you are NOT using Squinter or a similar tool, replace the #import statement below
+// with the contents of the named file (weather_ui.html)
+const HTML_STRING = @"
+#import "weather_ui.html"
+";
 
 // GLOBAL VARIABlES
 local request = null;
 local weather = null;
 local locator = null;
 local mailer = null;
+local sensorAgentURL = null
 local weatherTimer = null;
 local restartTimer = null;
 local settings = null;
@@ -352,14 +89,6 @@ function forecastCallback(err, data) {
                 sendData.temp <- item.apparentTemperature;
                 if (debug) server.log("Sending data to device");
                 device.send("weather.show.forecast", sendData);
-
-                // Log the outlook
-                if (debug) {
-                    local celsius = sendData.temp.tofloat();
-                    local message = "Summary: " + item.summary + " (" + sendData.cast + ") Temperature: " + format("%.1f", celsius) + "C";
-                    server.log(message);
-                }
-
                 savedData = sendData;
             }
         }
@@ -374,11 +103,11 @@ function forecastCallback(err, data) {
     // Get the indoors temperature from the sensor agent
     // This only works if you have set up an Environment Tail Sensor,
     // see https://github.com/smittytone/EnvTailTempLog
-    http.get(agent + "/state").sendasync(function(response) {
+    http.get(sensorAgentURL + "/state").sendasync(function(response) {
         if (response.statuscode == 200) {
             if ("body" in response) {
                 try {
-                    if (debug) server.log("Local temperature data received from sensor");
+                    if (debug) server.log("Inside temperature data received from remote sensor");
                     local data = http.jsondecode(response.body);
                     device.send("weather.set.local.temp", data.temp);
                 } catch (error) {
@@ -387,7 +116,7 @@ function forecastCallback(err, data) {
             }
         } else {
             if (response.statuscode == 404) {
-                if (debug) server.log("Sensor not available");
+                if (debug) server.log("Remote sensor not available");
             } else {
                 if (debug) server.error("Response from sensor agent: " + response.statuscode + " - " + response.body);
             }
@@ -489,13 +218,13 @@ function reset() {
 
 // START PROGRAM
 
-// If you are NOT using Squinter, uncomment these lines and add your API keys...
+// If you are NOT using Squinter, uncomment the following lines and add your API keys...
 // weather = DarkSky("YOUR_API_KEY");
-// locator = Location("YOUR_API_KEY", debug);
+// locator = Location("YOUR_GOOGLE_API_KEY(s)", debug);
 // mailer = IFTTT("YOUR_APPLET_ID");
-// agent <- "YOUR ENV TAIL AGENT URL";
+// agent = "YOUR ENV TAIL AGENT URL";
+// const APP_CODE = "Weather";
 
-// ...and comment out the following line:
 #import "~/Dropbox/Programming/Imp/Codes/weather.nut"
 
 // Specify UK units for all forecasts, ie. temperatures in Celsius
@@ -652,15 +381,15 @@ api.post("/debug", function(context) {
     context.send(200, (debug ? "Debug on" : "Debug off"));
 });
 
-// GET at /info returns device capabilities (EXPERIMENTAL)
-api.get("/info", function(context) {
-    local info = {};
-    info.app <- "761DDC8C-E7F5-40D4-87AC-9B06D91A672D";
-    info.watchsupported <- "true";
+// GET at /controller/info returns app data for Controller
+api.get("/controller/info", function(context) {
+    local info = { "appcode": APP_CODE,
+                   "watchsupported": "true" };
     context.send(200, http.jsonencode(info));
 });
 
-api.get("/state", function(context) {
+// GET at /controller/state returns device status for Controller
+api.get("/controller/state", function(context) {
     local data = device.isconnected() ? "1" : "0";
     context.send(200, data);
 });
@@ -679,6 +408,3 @@ restartTimer = imp.wakeup(AGENT_START_TIME, function() {
         }
     }
 });
-
-
-
