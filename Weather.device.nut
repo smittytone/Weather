@@ -28,6 +28,8 @@ local refreshTimer = null;
 local iconset = {};
 local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
+local displayOn = true;
+local displayRepeat = false;
 local debug = true;
 
 
@@ -117,13 +119,10 @@ function displayWeather(data) {
         }
     }
 
-    // Save the forecast
-    savedData = data;
-
     // Clear this screen
-    matrix.clearDisplay();
+    if (displayOn) matrix.clearDisplay();
 
-    // Display the weather by name, plus the temperature
+    // Prepare the string used to display the weather by name, plus the temperature
     local s = "    " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + "  ";
     local ls = "Forecast: " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + ". Temperature: ";
 
@@ -131,22 +130,17 @@ function displayWeather(data) {
     local f = data.temp.tofloat();
     s = s + format("Out: %.1f", f) + "\x7F" + "c";
     ls = ls + format("Out: %.1f", f) + "\xC2\xB0" + "c";
+    
+    // Add the interior temperature, if we have it
     if (localTemp != null) {
         s = s + " In: " + localTemp + "\x7F" + "c";
         ls = ls + " In: " + localTemp + "\xC2\xB0" + "c";
     }
 
-    // Draw text - spaces added to scroll everything off the matrix
-    matrix.displayLine(s + "    ");
-    savedForecast = s;
-
     if (debug) seriallog.log(ls);
-
-    // Pause for half a second
-    imp.sleep(0.5);
-
-    // Display the weather icon
-    local icon;
+    
+    // Prep the icon to display
+    local icon = null;
 
     try {
         icon = clone(iconset[data.icon]);
@@ -154,14 +148,28 @@ function displayWeather(data) {
         icon = clone(iconset[none]);
     }
 
+    // Store the icon and forecast string
     savedIcon = icon;
-    matrix.displayIcon(savedIcon);
+    savedForecast = s;
+    savedData = data;
 
-    if (savedData != null) {
-        refreshTimer = imp.wakeup(DISPLAY_REFRESH_INTERVAL, function() {
-            refreshTimer = null;
-            displayWeather(savedData);
-        });
+    if (displayOn) {
+        // Draw text - spaces added to scroll everything off the matrix
+        matrix.displayLine(s + "    ");
+        
+        // Pause for half a second
+        imp.sleep(0.5);
+        
+        // Display the weather icon
+        matrix.displayIcon(savedIcon);
+
+        // Set up a timer for the display repeat, if display repeat mode is enabled
+        if (savedData != null && displayRepeat) {
+            refreshTimer = imp.wakeup(DISPLAY_REFRESH_INTERVAL, function() {
+                refreshTimer = null;
+                displayWeather(savedData);
+            });
+        }
     }
 }
 
@@ -183,16 +191,16 @@ function disHandler(event) {
             agent.send("weather.get.location", true);
         } else if (event.type == "disconnected") {
             // Notify of disconnection...
-            matrix.displayLine("Disconnected");
+            if (displayOn) matrix.displayLine("Disconnected");
 
             // ...and replay the last saved forecast
-            if (savedForecast != null) {
+            if (savedForecast != null && displayOn) {
                 // 'savedForecast' will be null at first boot
                 imp.sleep(1.0);
                 matrix.displayLine(savedForecast + " ");
             }
 
-            if (savedIcon != null) {
+            if (savedIcon != null && displayOn) {
                 // 'savedIcon' will be null at first boot
                 imp.sleep(0.5);
                 matrix.displayIcon(savedIcon);
@@ -276,35 +284,63 @@ agent.on("weather.set.debug", function(value) {
 agent.on("weather.set.angle", function(a) {
     // The user has updated the device brightness/display angle settings
     if (debug) seriallog.log("Updating display angle (" + a + ")");
-    matrix.init(bright, a);
     angle = a;
-    if (savedData != null) refreshDisplay(savedData);
+    if (displayOn) { 
+        matrix.init(bright, a);
+        if (savedData != null) refreshDisplay(savedData);
+    }
 });
 
 agent.on("weather.set.bright", function(b) {
     // The user has updated the device brightness/display angle settings
     if (debug) seriallog.log("Updating display brightness (" + b + ")");
-    matrix.init(b, angle);
     bright = b;
-    if (savedData != null) refreshDisplay(savedData);
+    if (displayOn) {
+        matrix.init(b, angle);
+        if (savedData != null) refreshDisplay(savedData);
+    }
+});
+
+agent.on("weather.set.power", function(p) {
+    // The user has updated the device display state
+    if (debug) seriallog.log("Turning screen " + (p ? "on" : "off"));
+    if (displayOn && !p) matrix.clearDisplay();
+    displayOn = p;
+    if (displayOn && savedData != null) refreshDisplay(savedData);
+});
+
+agent.on("weather.set.repeat", function(r) {
+    // The user has enabled or disabled repeat mode
+    // ie. the display repeats periodically or is only updated when a new forecast comes in
+    if (debug) seriallog.log("Turning repeat mode " + (r ? "on" : "off"));
+    displayRepeat = r;
+    if (r && displayOn && savedData != null) refreshDisplay(savedData);
+    if (!r && refreshTimer != null) imp.cancelwakeup(refreshTimer);
 });
 
 agent.on("weather.set.settings", function(data) {
     // The agent has relayed the device settings
     if (debug) seriallog.log("Received device settings from agent");
-    local change = false;
+    local didChange = false;
+
+    if ("power" in data) {
+        if (data.power != displayOn) {
+            displayOn = data.power;
+            didChange = true;
+        }
+    }
 
     if ("bright" in data) {
         if (data.bright != bright) {
             bright = data.bright;
-            change = true;
+            didChange = true;
         }
     }
 
     if ("angle" in data) {
         if (data.angle != angle) {
             angle = data.angle;
-            change = true;
+            didChange = true;
         }
     }
 
@@ -312,10 +348,19 @@ agent.on("weather.set.settings", function(data) {
         if (debug != data.debug) debug = data.debug;
     }
 
-    if (change) {
+    if ("repeat" in data) {
+        if (displayRepeat != data.repeat) displayRepeat = data.repeat;
+        if (displayOn && displayRepeat && savedData != null) refreshDisplay(savedData);
+    }
+
+    if (didChange) {
         if (debug) seriallog.log("Updating display based on new settings");
-        matrix.init(bright, angle);
-        if (savedData != null) refreshDisplay(savedData);
+        if (displayOn) {
+            matrix.init(bright, angle);
+            if (savedData != null) refreshDisplay(savedData);
+        } else {
+            matrix.clearDisplay();
+        }
     }
 });
 
