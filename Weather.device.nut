@@ -15,6 +15,7 @@ const INITIAL_BRIGHT = 10;
 const RECONNECT_TIMEOUT = 15;
 const RECONNECT_DELAY = 300;
 
+
 // GLOBAL VARIABLES
 local locator = null;
 local matrix = null;
@@ -156,16 +157,13 @@ function displayWeather(data) {
     matrix.displayIcon(savedIcon);
 }
 
-// START PROGRAM
-
-// EARLY-START CODE
-// Set up connectivity policy — this should come as early in the code as possible
-disconnectionManager.eventCallback = function(event) {
+// Disconnection Manager reporting handler function
+function disHandler(event) {
     if ("message" in event) seriallog.log(event.message);
 
     if ("type" in event) {
         if (event.type == "connected") {
-            // Re-acquire settings, Location
+            // Re-acquire settings, location
             agent.send("weather.get.settings", true);
             agent.send("weather.get.location", true);
         } else if (event.type == "disconnected") {
@@ -189,8 +187,19 @@ disconnectionManager.eventCallback = function(event) {
             seriallog.log("Attempting to connect...");
         }
     }
-};
+}
+
+
+// START PROGRAM
+
+// Set up the disconnection handler function
+disconnectionManager.eventCallback = disHandler;
+disconnectionManager.reconnectDelay = RECONNECT_DELAY;
+disconnectionManager.reconnectTimeout = RECONNECT_TIMEOUT;
 disconnectionManager.start();
+
+// Set up locator
+locator = Location(null, true);
 
 // Set up impOS update notification
 server.onshutdown(function(reason) {
@@ -206,7 +215,7 @@ server.onshutdown(function(reason) {
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
-matrix = HT16K33Matrix(hardware.i2c89, 0x70, true);
+matrix = HT16K33Matrix(hardware.i2c89, 0x70);
 matrix.init(bright, angle);
 matrix.defineChar(0, [0x3C, 0x42, 0x95, 0xA1, 0xA1, 0x95, 0x42, 0x3C]);
 matrix.defineChar(1, [0x70, 0x18, 0x7D, 0xB6, 0xBE, 0x3E]);
@@ -215,9 +224,6 @@ matrix.defineChar(2, [0xBE, 0xB6, 0x7D, 0x18, 0x70]);
 // Splash screen animation
 intro();
 outro();
-
-// Set up locator
-locator = Location(null, true);
 
 // Set up weather icons
 iconset.clearday <- [0x89,0x42,0x18,0xBC,0x3D,0x18,0x42,0x91];
@@ -300,8 +306,7 @@ agent.on("weather.set.settings", function(data) {
 
 agent.on("weather.set.reboot", function(dummy) {
     // The user has asked the device to reboot
-    local a = split(imp.getsoftwareversion(), "-");
-    local v = a[2].tofloat();
+    local v = bootinfo.version().tofload();
     if (v > 38.0) {
       imp.reset();
     } else {
