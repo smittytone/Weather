@@ -14,6 +14,7 @@ const INITIAL_ANGLE = 270;
 const INITIAL_BRIGHT = 10;
 const RECONNECT_TIMEOUT = 15;
 const RECONNECT_DELAY = 300;
+const DISPLAY_REFRESH_INTERVAL = 30;
 
 
 // GLOBAL VARIABLES
@@ -23,7 +24,7 @@ local savedForecast = null;
 local savedData = null;
 local savedIcon = null;
 local localTemp = null;
-
+local refreshTimer = null;
 local iconset = {};
 local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
@@ -109,7 +110,7 @@ function displayWeather(data) {
     // Bail if we have duff data passed in
     if (data == null) {
         if (debug) seriallog.log("Agent sent null data");
-        if (savedData) {
+        if (savedData != null) {
             data = savedData;
         } else {
             return;
@@ -155,6 +156,20 @@ function displayWeather(data) {
 
     savedIcon = icon;
     matrix.displayIcon(savedIcon);
+
+    if (savedData != null) {
+        refreshTimer = imp.wakeup(DISPLAY_REFRESH_INTERVAL, function() {
+            refreshTimer = null;
+            displayWeather(savedData);
+        });
+    }
+}
+
+function refreshDisplay(data) {
+    // Call this function when you need to update the display manually
+    // It will halt the periodic refresh timer (set in 'displayWeather()')
+    if (refreshTimer != null) imp.cancelwakeup(refreshTimer);
+    displayWeather(data);
 }
 
 // Disconnection Manager reporting handler function
@@ -244,7 +259,7 @@ iconset.none <- [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
 agent.on("weather.show.forecast", function(data) {
     // The agent has sent updated forecast data the for the device to display
     if (debug) seriallog.log("Forecast data received from agent");
-    displayWeather(data);
+    refreshDisplay(data);
 });
 
 agent.on("weather.set.local.temp", function(temp) {
@@ -263,7 +278,7 @@ agent.on("weather.set.angle", function(a) {
     if (debug) seriallog.log("Updating display angle (" + a + ")");
     matrix.init(bright, a);
     angle = a;
-    if (savedData != null) displayWeather(savedData);
+    if (savedData != null) refreshDisplay(savedData);
 });
 
 agent.on("weather.set.bright", function(b) {
@@ -271,7 +286,7 @@ agent.on("weather.set.bright", function(b) {
     if (debug) seriallog.log("Updating display brightness (" + b + ")");
     matrix.init(b, angle);
     bright = b;
-    if (savedData != null) displayWeather(savedData);
+    if (savedData != null) refreshDisplay(savedData);
 });
 
 agent.on("weather.set.settings", function(data) {
@@ -300,7 +315,7 @@ agent.on("weather.set.settings", function(data) {
     if (change) {
         if (debug) seriallog.log("Updating display based on new settings");
         matrix.init(bright, angle);
-        if (savedData != null) displayWeather(savedData);
+        if (savedData != null) refreshDisplay(savedData);
     }
 });
 
