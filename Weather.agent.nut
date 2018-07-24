@@ -8,7 +8,7 @@
 #import "../Location/location.class.nut"
 
 // CONSTANTS
-const REFRESH_TIME = 900;
+const FORECAST_REFRESH_INTERVAL = 900;  // 15 minutes
 const AGENT_START_TIME = 120;
 // If you are NOT using Squinter or a similar tool, replace the #import statement below
 // with the contents of the named file (weather_ui.html)
@@ -123,9 +123,9 @@ function forecastCallback(err, data) {
         }
     });
 
-    // Tell the agent get the next forecast in 'REFRESH_TIME' seconds time
+    // Tell the agent get the next forecast in 'FORECAST_REFRESH_INTERVAL' seconds time
     if (weatherTimer) imp.cancelwakeup(weatherTimer);
-    weatherTimer = imp.wakeup(REFRESH_TIME, function(){
+    weatherTimer = imp.wakeup(FORECAST_REFRESH_INTERVAL, function(){
         sendForecast(true);
     });
 }
