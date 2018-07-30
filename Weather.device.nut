@@ -2,6 +2,10 @@
 // Copyright 2016-18, Tony Smith
 
 // IMPORTS
+// NOTE If you are not using a tool like Squinter or impt, please
+//      paste the contents of the file named in each line below into
+//      the device code at this point, and then delete or comment out
+//      all of the following #import statements
 #import "../Location/location.class.nut"
 #import "../HT16K33Matrix/ht16k33matrix.class.nut"
 #import "../generic/seriallog.nut"
@@ -35,7 +39,8 @@ local debug = true;
 
 // DEVICE FUNCTIONS
 function intro() {
-    // Fill in the matrix pixels from the outside in, in spiral fashion
+    // This function sets the matrix pixels from the outside in, 
+    // in a spiral pattern
     local x = 7, y = 0;
     local dx = 0, dy = 1;
     local mx = 6, my = 7;
@@ -71,7 +76,8 @@ function intro() {
 }
 
 function outro() {
-    // Clear the matrix pixels from the inside out, in spiral fashion
+    // This function clears the matrix pixels from the inside out, 
+    // in a spiral pattern
     local x = 4, y = 3;
     local dx = -1, dy = 0;
     local mx = 5, my = 4;
@@ -106,40 +112,33 @@ function outro() {
 }
 
 function displayWeather(data) {
-    // This function is called **solely** in response to a message from the server,
-    // ie. it will not be called if the device is disconnected
+    // This function is called in response to a message from the server containing
+    // a new hour-ahead weather forecast, or in response to a timer-fire if the user
+    // has applied the 'refresh display' setting. Refreshing the display shows the 
+    // current forecast again, and the current forecast will continue to be shown
+    // if the device goes offline for any period
 
-    // Bail if we have duff data passed in
+    // Bail if we have no data passed in
     if (data == null) {
         if (debug) seriallog.log("Agent sent null data");
         if (savedData != null) {
+            // Use a saved forecast, if we have one 
             data = savedData;
         } else {
             return;
         }
     }
 
-    // Clear this screen
-    if (displayOn) matrix.clearDisplay();
-
-    // Prepare the string used to display the weather by name, plus the temperature
-    local s = "    " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + "  ";
-    local ls = "Forecast: " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + ". Temperature: ";
-
-    // Add the temperature
-    local f = data.temp.tofloat();
-    s = s + format("Out: %.1f", f) + "\x7F" + "c";
-    ls = ls + format("Out: %.1f", f) + "\xC2\xB0" + "c";
+    // Prepare the string used to display the weather forecastt by name...
+    local ds = "    " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + "  ";
     
-    // Add the interior temperature, if we have it
-    if (localTemp != null) {
-        s = s + " In: " + localTemp + "\x7F" + "c";
-        ls = ls + " In: " + localTemp + "\xC2\xB0" + "c";
-    }
-
-    if (debug) seriallog.log(ls);
+    // ...then add the forecast temperature...
+    ds = ds + format("Out: %.1f", data.temp.tofloat()) + "\x7F" + "c";
     
-    // Prep the icon to display
+    // ...and finally add the interior temperature, if we have it
+    if (localTemp != null) ds = ds + " In: " + localTemp + "\x7F" + "c";
+    
+    // Prepare an icon to display
     local icon = null;
 
     try {
@@ -148,22 +147,28 @@ function displayWeather(data) {
         icon = clone(iconset[none]);
     }
 
-    // Store the icon and forecast string
+    // Store the current icon and forecast string
+    // (we will need to re-use it if the 'refresh display' timer fires, or
+    //  the device goes offline and receives no new forecasts)
     savedIcon = icon;
-    savedForecast = s;
+    savedForecast = ds;
     savedData = data;
 
+    // Display the forecast if we should display it
     if (displayOn) {
+        // Clear this screen
+        matrix.clearDisplay();
+        
         // Draw text - spaces added to scroll everything off the matrix
-        matrix.displayLine(s + "    ");
+        matrix.displayLine(ds + "    ");
         
         // Pause for half a second
         imp.sleep(0.5);
         
         // Display the weather icon
-        matrix.displayIcon(savedIcon);
+        matrix.displayIcon(icon);
 
-        // Set up a timer for the display repeat, if display repeat mode is enabled
+        // Set up a timer for the display repeat, if refresh display mode is enabled
         if (savedData != null && displayRepeat) {
             refreshTimer = imp.wakeup(DISPLAY_REFRESH_INTERVAL, function() {
                 refreshTimer = null;
@@ -171,8 +176,17 @@ function displayWeather(data) {
             });
         }
     }
+
+    // Present debug info if we should
+    if (debug) {
+        local ls = "Forecast: " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + ". Temperature: ";
+        ls = ls + format("Out: %.1f", data.temp.tofloat()) + "\xC2\xB0" + "c";
+        if (localTemp != null) ls = ls + " In: " + localTemp + "\xC2\xB0" + "c";
+        seriallog.log(ls);
+    }
 }
 
+// Function to insert new data into the display cycle
 function refreshDisplay(data) {
     // Call this function when you need to update the display manually
     // It will halt the periodic refresh timer (set in 'displayWeather()')
@@ -215,14 +229,14 @@ function disHandler(event) {
 
 // START PROGRAM
 
+// Set up locator
+locator = Location(null, true);
+
 // Set up the disconnection handler function
 disconnectionManager.eventCallback = disHandler;
 disconnectionManager.reconnectDelay = RECONNECT_DELAY;
 disconnectionManager.reconnectTimeout = RECONNECT_TIMEOUT;
 disconnectionManager.start();
-
-// Set up locator
-locator = Location(null, true);
 
 // Set up impOS update notification
 server.onshutdown(function(reason) {
@@ -250,7 +264,7 @@ outro();
 
 // Set up weather icons
 iconset.clearday <- [0x89,0x42,0x18,0xBC,0x3D,0x18,0x42,0x91];
-iconset.clearnight <- [0x0,0x0,0x0,0x81,0xE7,0x7E,0x3C,0x18];
+// iconset.clearnight <- [0x0,0x0,0x0,0x81,0xE7,0x7E,0x3C,0x18];
 iconset.rain <- [0x8C,0x5E,0x1E,0x5F,0x3F,0x9F,0x5E,0xC];
 iconset.lightrain <- [0x8C,0x52,0x12,0x51,0x31,0x91,0x52,0xC];
 iconset.snow <- [0x14,0x49,0x2A,0x1C,0x1C,0x2A,0x49,0x14];
@@ -262,6 +276,7 @@ iconset.partlycloudy <- [0xC,0x12,0x12,0x11,0x11,0x11,0x12,0xC];
 iconset.thunderstorm <- [0x0,0x0,0x0,0xF0,0x1C,0x7,0x0,0x0];
 iconset.tornado <- [0x0,0x2,0x36,0x7D,0xDD,0x8D,0x6,0x2];
 iconset.none <- [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
+iconset.clearnight <- [0x3C,0x42,0x81,0xC3,0xFF,0xFF,0x7E,0x3C];
 
 // Set up agent interaction
 agent.on("weather.show.forecast", function(data) {
