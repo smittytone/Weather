@@ -8,7 +8,7 @@
 #import "../Location/location.class.nut"
 
 // CONSTANTS
-const REFRESH_TIME = 900;
+const FORECAST_REFRESH_INTERVAL = 900;  // 15 minutes
 const AGENT_START_TIME = 120;
 // If you are NOT using Squinter or a similar tool, replace the #import statement below
 // with the contents of the named file (weather_ui.html)
@@ -123,9 +123,9 @@ function forecastCallback(err, data) {
         }
     });
 
-    // Tell the agent get the next forecast in 'REFRESH_TIME' seconds time
+    // Tell the agent get the next forecast in 'FORECAST_REFRESH_INTERVAL' seconds time
     if (weatherTimer) imp.cancelwakeup(weatherTimer);
-    weatherTimer = imp.wakeup(REFRESH_TIME, function(){
+    weatherTimer = imp.wakeup(FORECAST_REFRESH_INTERVAL, function(){
         sendForecast(true);
     });
 }
@@ -213,6 +213,8 @@ function reset() {
     settings.angle <- 0;
     settings.bright <- 15;
     settings.debug <- false;
+    settings.power <- true;
+    settings.repeat <- false;
     server.save(settings);
 }
 
@@ -239,6 +241,8 @@ if (loadedSettings.len() == 0) {
     settings.angle <- 0;
     settings.bright <- 15;
     settings.debug <- false;
+    settings.power <- true;
+    settings.repeat <- false;
     server.save(settings);
 } else {
     // Clear settings if required (but only if we HAVE saved settings)
@@ -246,11 +250,16 @@ if (loadedSettings.len() == 0) {
         reset();
     } else {
         settings = loadedSettings;
+        
+        // Handle later additions to the settings
         if ("debug" in settings) {
             debug = settings.debug;
         } else {
             settings.debug <- debug;
         }
+
+        if (!("power" in settings)) settings.power <- true;
+        if (!("repeat" in settings)) settings.repeat <- false;
     }
 }
 
@@ -287,6 +296,8 @@ api.get("/current", function(context) {
     data.angle <- settings.angle.tostring();
     data.bright <- settings.bright;
     data.debug <- settings.debug;
+    data.power <- settings.power;
+    data.repeat <- settings.repeat;
     data = http.jsonencode(data);
     context.send(200, data);
 });
@@ -324,11 +335,14 @@ api.post("/update", function(context) {
 
 // POST at /settings updates the passed setting(s)
 // passed to the endpoint:
-// { "angle" : <0-270>,
-//   "bright" : <0-15>  }
+// { "angle"  : <0-270>,
+//   "bright" : <0-15>,
+//   "power"  : <true/false>,
+//   "repeat" : <true/false> }
 api.post("/settings", function(context) {
     try {
         local data = http.jsondecode(context.req.rawbody);
+        
         if ("angle" in data) {
             local a = data.angle.tointeger();
             if (debug) server.log("Display angle changed to " + a);
@@ -341,6 +355,20 @@ api.post("/settings", function(context) {
             if (debug) server.log("Display brightness changed to " + b);
             device.send("weather.set.bright", b);
             settings.bright = b;
+        }
+
+        if ("power" in data) {
+            local p = data.power;
+            if (debug) server.log("Display turned " + (p ? "on" : "off"));
+            device.send("weather.set.power", p);
+            settings.power = p;
+        }
+
+        if ("repeat" in data) {
+            local r = data.repeat;
+            if (debug) server.log("Repeat mode " + (r ? "en" : "dis") + "abled");
+            device.send("weather.set.repeat", r);
+            settings.repeat = r;
         }
     } catch (err) {
         server.error(err);

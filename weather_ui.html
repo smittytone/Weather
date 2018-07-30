@@ -20,9 +20,9 @@
                 font-size: 18px; color: white; font-family: Abel, sans-serif; -webkit-user-select: none;
                 -moz-user-select: none; -ms-user-select: none; user-select: none;}
     .radiobox input { position: absolute; opacity: 0; cursor: pointer;}
-    .checkmark { position: absolute; top: 0; left: 0; height: 25px; width: 25px; background-color: #b30000;
+    .checkmark { position: absolute; top: 0; left: 0; height: 25px; width: 25px; background-color: #a30000;
                  border-radius: 50%%; }
-    .radiobox:hover input ~ .checkmark { background-color: #a30000;}
+    .radiobox:hover input ~ .checkmark { background-color: #FCBE38;}
     .radiobox input:checked ~ .checkmark { background-color: #FCBE38; }
     .checkmark:after { content: ''; position: absolute; display: none; }
     .radiobox input:checked ~ .checkmark:after { display: block; }
@@ -80,6 +80,12 @@
                 <button class='btn btn-warning' type='submit' id='rebooter'>Restart Monitor</button>
               </div>
             </div>
+            <p><small>&nbsp;</small></p>
+            <div class='row' style='font-family:Abel,sans-serif'>
+              <div class='col power-button' align='center'>
+                <button class='btn btn-warning' type='submit' id='powerer'>Turn Display Off</button>
+              </div>
+            </div>
           </div>
           <div class='col-2'>&nbsp;</div>
         </div>
@@ -99,11 +105,20 @@
               <label class='radiobox'><input type='radio' name='angle' id='angle270' value='270'> 270&deg;<span class='checkmark'></span></label>
             </div>
             <hr>
-            <div>
-              <p class='brightness-status'>Brightness</p>
+            <div align='center'>
+              <p>Brightness</p>
               <input class='slider' type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
               <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
               <p class='brightness-status' align='right'>Brightness: <span></span></p>
+            </div>
+            <hr>
+            <div align='center'>
+              <p>Forecast Display</p>
+              <div class='repeat-checkbox' style='color:white;font-family:Abel,sans-serif'>
+                <input type='checkbox' name='repeat' id='repeat' value='repeat'> Regularly reshow current forecast
+              </div>
+              <p style='font-size: 12px;'>&nbsp;<br />By default, the hour-ahead forecast updates every 15 minutes, and the monitor’s display updates
+                at that time. Check the box above to periodically re-display the forecast temperature reading.</p>
             </div>
             <div class='advancedsettings' style='background-color:#a30000'>
               <p class='showhide text-center'>Show Advanced Settings</p>
@@ -138,6 +153,7 @@
   // Variables
   var agenturl = '%s';
   var isMobile = false;
+  var isOn = true;
 
   // Set initial error message
   $('.error-message span').text('Forecast updates automatically every two minutes');
@@ -149,11 +165,13 @@
   $('.update-button button').click(update);
   $('.reboot-button button').click(reboot);
   $('.reset-button button').click(reset);
+  $('.power-button button').click(power);
   $('#angle0').click(setangle);
   $('#angle90').click(setangle);
   $('#angle180').click(setangle);
   $('#angle270').click(setangle);
   $('#debug').click(setdebug);
+  $('#repeat').click(setrepeat);
 
   var slider = document.getElementById('brightness');
   $('.brightness-status span').text(slider.value);
@@ -190,6 +208,12 @@
       $('#brightness').val(data.bright);
       $('.brightness-status span').text(data.bright);
       document.getElementById('debug').checked = data.debug;
+      document.getElementById('repeat').checked = data.repeat;
+
+      if (data.power !== isOn) {
+        $('.power-button button').text(data.power ? 'Turn Display Off' : 'Turn Display On');
+      }
+      isOn = data.power;
     }
 
     setTimeout(function() {
@@ -251,6 +275,19 @@
     });
   }
 
+  function power() {
+    // Trigger the screen to turn off or on
+    isOn = !isOn;
+    $('.power-button button').text(isOn ? 'Turn Display Off' : 'Turn Display On');
+    
+    $.ajax({
+      url : agenturl + '/settings',
+      type: 'POST',
+      data: JSON.stringify({ 'power' : isOn }),
+      cache: false
+    });
+  }
+
   function setangle() {
     // Set the device screen angle
     var s;
@@ -295,6 +332,16 @@
       url : agenturl + '/debug',
       type: 'POST',
       data: JSON.stringify({ 'debug' : document.getElementById('debug').checked }),
+      cache: false
+    });
+  }
+
+  function setrepeat() {
+    // Tell the device to enter or leave repeat mode
+    $.ajax({
+      url : agenturl + '/settings',
+      type: 'POST',
+      data: JSON.stringify({ 'repeat' : document.getElementById('repeat').checked }),
       cache: false
     });
   }
