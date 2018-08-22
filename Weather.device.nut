@@ -196,7 +196,7 @@ function refreshDisplay(data) {
 
 // Disconnection Manager reporting handler function
 function disHandler(event) {
-    if ("message" in event) seriallog.log(event.message);
+    if ("message" in event) seriallog.log("Disconnection Manager says: " + event.message);
 
     if ("type" in event) {
         if (event.type == "connected") {
@@ -221,7 +221,7 @@ function disHandler(event) {
             }
         } else if (event.type == "connecting") {
             // Notify of disconnection...
-            seriallog.log("Attempting to connect...");
+            seriallog.log("Disconnection Manager says: Attempting to connect...");
         }
     }
 }
