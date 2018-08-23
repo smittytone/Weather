@@ -52,7 +52,7 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 ## Release Notes ##
 
 - 3.10 *In Development*
-    - ...
+    - Minor code changes
 - 3.9 *30 July 2018*
     - Add [DisconnectionManager 2.0.0](https://github.com/smittytone/generic/blob/master/disconnect.nut)
     - Add periodic repeat of the current forecast on the display, enabled or disbabled via the web UI
