@@ -316,6 +316,10 @@ api.post("/update", function(context) {
             } else if (data.action == "reboot") {
                 if (debug) server.log("Restarting Device");
                 device.send("weather.set.reboot", true);
+            } else if (data.action == "power") {
+                if (debug) server.log("Switching display power");
+                settings.power = !settings.power;
+                device.send("weather.set.power", settings.power);
             } else if (data.action == "reset") {
                 // Clear and reset the settings, then
                 // reboot the device to apply them
@@ -418,7 +422,10 @@ api.get("/controller/info", function(context) {
 
 // GET at /controller/state returns device status for Controller
 api.get("/controller/state", function(context) {
-    local data = device.isconnected() ? "1" : "0";
+    // Sends a status string, eg. "0.1"
+    // First digit it 1/0 (true/false) for display is connected
+    // Second digit it 1/0 (true/false) for display is powered
+    local data = (device.isconnected() ? "1." : "0.") + (settings.power ? "1" : "0");
     context.send(200, data);
 });
 
