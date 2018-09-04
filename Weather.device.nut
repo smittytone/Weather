@@ -36,6 +36,7 @@ local displayOn = true;
 local displayRepeat = false;
 local displayPeriod = 300;
 local debug = true;
+local connecting = false;
 
 
 // DEVICE FUNCTIONS
@@ -47,8 +48,7 @@ function intro() {
     local mx = 6, my = 7;
     local nx = 0, ny = 0;
 
-
-    for (local i = 0 ; i < 64 ; ++i) {
+    for (local i = 0 ; i < 64 ; i++) {
         matrix.plot(x, y, 1).draw();
 
         if (dx == 1 && x == mx) {
@@ -84,7 +84,7 @@ function outro() {
     local mx = 5, my = 4;
     local nx = 3, ny = 2;
 
-    for (local i = 0 ; i < 64 ; ++i) {
+    for (local i = 0 ; i < 64 ; i++) {
         matrix.plot(x, y, 0).draw();
 
         if (dx == 1 && x == mx) {
@@ -210,9 +210,11 @@ function disHandler(event) {
 
     if ("type" in event) {
         if (event.type == "connected") {
-            // Re-acquire settings, location
-            agent.send("weather.get.settings", true);
-            agent.send("weather.get.location", true);
+            // Re-acquire settings, location after a disconnection
+            if (connecting) {
+                connecting = false;
+                agent.send("weather.get.settings", true);
+            }
         } else if (event.type == "disconnected") {
             // Notify of disconnection...
             if (displayOn) matrix.displayLine("Disconnected");
@@ -232,6 +234,7 @@ function disHandler(event) {
         } else if (event.type == "connecting") {
             // Notify of disconnection...
             seriallog.log("Disconnection Manager says: Attempting to connect...");
+            connecting = false;
         }
     }
 }
@@ -264,6 +267,8 @@ server.onshutdown(function(reason) {
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 matrix = HT16K33Matrix(hardware.i2c89, 0x70);
 matrix.init(bright, angle);
+
+// Define non-standard characters: degree symbol, etc.
 matrix.defineChar(0, [0x3C, 0x42, 0x95, 0xA1, 0xA1, 0x95, 0x42, 0x3C]);
 matrix.defineChar(1, [0x70, 0x18, 0x7D, 0xB6, 0xBE, 0x3E]);
 matrix.defineChar(2, [0xBE, 0xB6, 0x7D, 0x18, 0x70]);
@@ -274,7 +279,6 @@ outro();
 
 // Set up weather icons
 iconset.clearday <- [0x89,0x42,0x18,0xBC,0x3D,0x18,0x42,0x91];
-// iconset.clearnight <- [0x0,0x0,0x0,0x81,0xE7,0x7E,0x3C,0x18];
 iconset.rain <- [0x8C,0x5E,0x1E,0x5F,0x3F,0x9F,0x5E,0xC];
 iconset.lightrain <- [0x8C,0x52,0x12,0x51,0x31,0x91,0x52,0xC];
 iconset.snow <- [0x14,0x49,0x2A,0x1C,0x1C,0x2A,0x49,0x14];
@@ -287,6 +291,7 @@ iconset.thunderstorm <- [0x0,0x0,0x0,0xF0,0x1C,0x7,0x0,0x0];
 iconset.tornado <- [0x0,0x2,0x36,0x7D,0xDD,0x8D,0x6,0x2];
 iconset.none <- [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
 iconset.clearnight <- [0x3C,0x42,0x81,0xC3,0xFF,0xFF,0x7E,0x3C];
+// iconset.clearnight <- [0x0,0x0,0x0,0x81,0xE7,0x7E,0x3C,0x18];
 
 // Set up agent interaction
 agent.on("weather.show.forecast", function(data) {
@@ -334,72 +339,20 @@ agent.on("weather.set.power", function(p) {
     if (displayOn && savedData != null) refreshDisplay(savedData);
 });
 
-agent.on("weather.set.repeat", function(r) {
+agent.on("weather.set.repeat", function(shouldRepeat) {
     // The user has enabled or disabled repeat mode
     // ie. the display repeats periodically or is only updated when a new forecast comes in
     if (debug) seriallog.log("Turning repeat mode " + (r ? "on" : "off"));
-    displayRepeat = r;
-    if (r && displayOn && savedData != null) refreshDisplay(savedData);
-    if (!r) clearTimer();
-});
-
-agent.on("weather.set.settings", function(data) {
-    // The agent has relayed the device settings
-    if (debug) seriallog.log("Received device settings from agent");
-    local didChange = false;
-
-    if ("power" in data) {
-        if (data.power != displayOn) {
-            displayOn = data.power;
-            didChange = true;
-        }
-    }
-
-    if ("bright" in data) {
-        if (data.bright != bright) {
-            bright = data.bright;
-            didChange = true;
-        }
-    }
-
-    if ("angle" in data) {
-        if (data.angle != angle) {
-            angle = data.angle;
-            didChange = true;
-        }
-    }
-
-    if ("debug" in data) {
-        if (debug != data.debug) debug = data.debug;
-    }
-
-    if ("repeat" in data) {
-        if (displayRepeat != data.repeat) displayRepeat = data.repeat;
-        //if (displayOn && displayRepeat && savedData != null) refreshDisplay(savedData);
-    }
-
-    if ("period" in data) {
-        if (data.period * 60 != displayPeriod) {
-            displayPeriod = data.period * 60;
-            didChange = true;
-        }
-    }
-
-    if (didChange) {
-        if (debug) seriallog.log("Updating display based on new settings");
-        if (displayOn) {
-            clearTimer();
-            matrix.init(bright, angle);
-            if (savedData != null) refreshDisplay(savedData);
-        } else {
-            matrix.clearDisplay();
-        }
-    }
+    displayRepeat = shouldRepeat;
+    if (shouldRepeat && displayOn && savedData != null) refreshDisplay(savedData);
+    if (!shouldRepeat) clearTimer();
 });
 
 agent.on("weather.set.period", function(period) {
-    period = period * 60;
-    if (period != displayPeriod) displayPeriod = period;
+    // Convert minutes (agent setting) to seconds (device setting)
+    displayPeriod = period * 60;
+    
+    // If we're repeating the display, refresh it now
     if (displayRepeat) {
         clearTimer();
         if (savedData != null) refreshDisplay(savedData);
@@ -416,13 +369,34 @@ agent.on("weather.set.reboot", function(dummy) {
     }
 });
 
-// At this point, the device will wait for a forecast from the agent.
-// It will display this when it receives it, but we should check that the server is there
+agent.on("weather.set.settings", function(data) {
+    // The agent has relayed the device settings
+    if (debug) seriallog.log("Received device settings from agent");
+    
+    displayOn = data.power;
+    bright = data.bright;
+    angle = data.angle;
+    debug = data.debug;
+    displayRepeat = data.repeat;
+    displayPeriod = data.period * 60;
+
+    if (displayOn) {
+        matrix.init(bright, angle);
+    } else {
+        matrix.clearDisplay();
+    }
+
+    // The device's settings are now in place, so get its location
+    agent.send("weather.get.location", true);
+});
+
+// If the device is connected, request its settings from the agent.
+// This will in turn get the device's location, causing the agent to 
+// begin sending forecasts every 15 minutes.
 if (server.isconnected()) {
     // Tell the agent that the device is ready
     if (debug) seriallog.log("Requesting a forecast and settings from agent");
     agent.send("weather.get.settings", true);
-    agent.send("weather.get.location", true);
 } else {
     // Link down - try to connect to the server...
     disconnectionManager.connect();

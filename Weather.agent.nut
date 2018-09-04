@@ -132,8 +132,18 @@ function forecastCallback(err, data) {
 
 // LOCATION FUNCTIONS
 function locationLookup(dummy) {
-    if (restartTimer) imp.cancelwakeup(restartTimer);
-    restartTimer = null;
+    // Now we've received a message from the device, if the agent restart timer is
+    // running, kill it
+    if (restartTimer != null) {
+        imp.cancelwakeup(restartTimer);
+        restartTimer = null;
+    }
+
+    // Kill the weather forecast timer
+    if (weatherTimer != null) {
+        imp.cancelwakeup(weatherTimer);
+        weatherTimer = null;
+    }
 
     if ((locationTime != -1) && (time() - locationTime < 86400)) {
         // No need to check within one day of locating the device
@@ -148,7 +158,6 @@ function locationLookup(dummy) {
             myLatitude = locale.latitude;
             myLocation = parsePlaceData(locale.placeData);
             locationTime = time();
-            sendForecast(true);
 
             if (debug) {
                 server.log("Co-ordinates: " + myLongitude + ", " + myLatitude);
@@ -157,6 +166,8 @@ function locationLookup(dummy) {
 
             local tz = locator.getTimezone();
             if (!("error" in tz) && debug) server.log("Timezone    : " + tz.gmtOffsetStr);
+
+            sendForecast(true);
         } else {
             server.error(locale.err);
             imp.wakeup(10, function() {
@@ -165,6 +176,7 @@ function locationLookup(dummy) {
         }
     });
 
+    // Mark device as connected, since its arrival initiated this call
     deviceSyncFlag = true;
 }
 
@@ -202,10 +214,6 @@ function parsePlaceData(data) {
 }
 
 // SETTINGS FUNCTIONS
-function getSettings(dummy) {
-    device.send("weather.set.settings", settings);
-}
-
 function reset() {
     if (debug) server.log("Clearing settings to default values");
     server.save({});
@@ -261,8 +269,10 @@ if (loadedSettings.len() == 0) {
 
 // Register the function to call when the device asks for a forecast
 device.on("weather.get.location", locationLookup);
-device.on("weather.get.forecast", sendForecast);
-device.on("weather.get.settings", getSettings);
+//device.on("weather.get.forecast", sendForecast);
+device.on("weather.get.settings", function(dummy) {
+    device.send("weather.set.settings", settings);
+});
 
 // Set up the API that the agent will server
 api = Rocky();
