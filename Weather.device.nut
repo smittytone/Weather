@@ -34,6 +34,7 @@ local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
 local displayOn = true;
 local displayRepeat = false;
+local displayPeriod = 300;
 local debug = true;
 
 
@@ -170,7 +171,7 @@ function displayWeather(data) {
 
         // Set up a timer for the display repeat, if refresh display mode is enabled
         if (savedData != null && displayRepeat) {
-            refreshTimer = imp.wakeup(DISPLAY_REFRESH_INTERVAL, function() {
+            refreshTimer = imp.wakeup(displayPeriod, function() {
                 refreshTimer = null;
                 displayWeather(savedData);
             });
@@ -190,7 +191,11 @@ function displayWeather(data) {
 function refreshDisplay(data) {
     // Call this function when you need to update the display manually
     // It will halt the periodic refresh timer (set in 'displayWeather()')
-    if (refreshTimer != null) imp.cancelwakeup(refreshTimer);
+    if (refreshTimer != null) {
+        imp.cancelwakeup(refreshTimer);
+        refreshTimer = null;
+    }
+
     displayWeather(data);
 }
 
@@ -330,7 +335,10 @@ agent.on("weather.set.repeat", function(r) {
     if (debug) seriallog.log("Turning repeat mode " + (r ? "on" : "off"));
     displayRepeat = r;
     if (r && displayOn && savedData != null) refreshDisplay(savedData);
-    if (!r && refreshTimer != null) imp.cancelwakeup(refreshTimer);
+    if (!r && refreshTimer != null) {
+        imp.cancelwakeup(refreshTimer);
+        refreshTimer = null;
+    }
 });
 
 agent.on("weather.set.settings", function(data) {
@@ -365,7 +373,7 @@ agent.on("weather.set.settings", function(data) {
 
     if ("repeat" in data) {
         if (displayRepeat != data.repeat) displayRepeat = data.repeat;
-        if (displayOn && displayRepeat && savedData != null) refreshDisplay(savedData);
+        //if (displayOn && displayRepeat && savedData != null) refreshDisplay(savedData);
     }
 
     if (didChange) {
@@ -377,6 +385,10 @@ agent.on("weather.set.settings", function(data) {
             matrix.clearDisplay();
         }
     }
+});
+
+agent.on("weather.set.period", function(period) {
+    if (period != displayPeriod) displayPeriod = period;
 });
 
 agent.on("weather.set.reboot", function(dummy) {

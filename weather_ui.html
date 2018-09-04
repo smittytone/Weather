@@ -40,6 +40,20 @@
     .uicontent {border: 2px solid #ffcc00;}
     .container {padding: 20px;}
     .btn-warning {width: 200px;}
+    .rperiod { position:relative }
+    .rperiod .rfield {
+      width:220px; background:#a30000; color:#fff; padding:5px; cursor:pointer;
+      font-family: Abel,sans-serif; font-size:18px; 
+      -webkit-transition: all .4s ease-in-out;
+      transition: all .4s ease-in-out; }
+    .rperiod .rfield:hover { background:#ffcc00; }
+    .rperiod>ul.list { display:none; position:absolute; right:-10px; top:-52px; z-index:999;
+      width:300px; margin:0; padding:10px; list-style:none; background:#ffcc00; color:#333;
+      -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px; font-family: Abel,sans-serif; font-size:18px;
+      -moz-box-shadow:0 0 5px #999; -webkit-box-shadow:0 0 5px #999; box-shadow:0 0 5px #999 }
+    .rperiod>ul.list li { padding:10px; border-bottom: solid 1px #ccc; }
+    .rperiod>ul.list li:hover { background:#a30000; color:#fff; }
+    .rperiod>ul.list li:last-child { border:none }
 
     @media only screen and (max-width: 640px) {
         .container {padding: 5px;}
@@ -118,7 +132,17 @@
                 <input type='checkbox' name='repeat' id='repeat' value='repeat'> Regularly reshow current forecast
               </div>
               <p style='font-size: 12px;'>&nbsp;<br />By default, the hour-ahead forecast updates every 15 minutes, and the monitor’s display updates
-                at that time. Check the box above to periodically re-display the forecast temperature reading.</p>
+                at that time. Check the box above to periodically re-display the forecast temperature reading between updates, and select how often
+                this occurs below.</p>
+              <div class='rperiod'>
+                <p>Repeat Every&nbsp;
+                <input type='text' name='test' value='Choose your repeat period' id='rfield' class='rfield' readonly='readonly' />
+                <ul class='list'>
+                  <li>1 Minute</li>
+                  <li>3 Minutes</li>
+                  <li>5 Minutes</li>
+                </ul></p>
+              </div>
             </div>
             <div class='advancedsettings' style='background-color:#a30000'>
               <p class='showhide text-center'>Show Advanced Settings</p>
@@ -149,6 +173,10 @@
   <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
   <script>
   $('.advanced').hide();
+
+  $(function(){
+	  $('.rperiod').styleddropdown();
+  });
 
   // Variables
   var agenturl = '%s';
@@ -209,6 +237,9 @@
       $('.brightness-status span').text(data.bright);
       document.getElementById('debug').checked = data.debug;
       document.getElementById('repeat').checked = data.repeat;
+      
+      let s = data.period.toString() + ' Minute';
+      document.getElementById('rfield').value = s;
 
       if (data.power !== isOn) {
         $('.power-button button').text(data.power ? 'Turn Display Off' : 'Turn Display On');
@@ -338,13 +369,75 @@
 
   function setrepeat() {
     // Tell the device to enter or leave repeat mode
+    let isChecked = document.getElementById('repeat').checked;
+    
+    if (isChecked) {
+      let period = document.getElementById('rfield').value;
+      if (period == 'Choose your repeat period') {
+        document.getElementById('rfield').value = '5 Minutes';
+        setPeriod();
+      }
+    }
+
     $.ajax({
       url : agenturl + '/settings',
       type: 'POST',
-      data: JSON.stringify({ 'repeat' : document.getElementById('repeat').checked }),
+      data: JSON.stringify({ 'repeat' : isChecked }),
       cache: false
     });
   }
+
+  function setPeriod() {
+    let v = document.getElementById('rfield').value;
+    var p = 15;
+    if (v == '1 Minute') {
+      p = 1;
+    } else if (v == '3 Minutes') {
+      p = 3;
+    } else if (v == '5 Minutes') {
+      p = 5;
+    }
+    
+    // Send the period to the agent
+    $.ajax({
+      url : agenturl + '/settings',
+      type: 'POST',
+      data: JSON.stringify({ 'period' : p.toString() }),
+      cache: false
+    });
+  }
+
+  (function($){
+    $.fn.styleddropdown = function(){
+      return this.each(function(){
+        var obj = $(this)
+        obj.find('.rfield').click(function() { //onclick event, 'list' fadein
+          obj.find('.list').fadeIn(400);
+        
+          $(document).keyup(function(event) { // keypress event, fadeout on 'escape'
+            if(event.keyCode == 27) {
+            obj.find('.list').fadeOut(400);
+          }
+        });
+        
+        obj.find('.list').hover(function(){ },
+          function(){
+            $(this).fadeOut(400);
+          });
+        });
+        
+        obj.find('.list li').click(function() { // onclick event, change field value with selected 'list' item and fadeout 'list'
+          obj.find('.rfield')
+            .val($(this).html())
+            .css({
+              'background':'#a3000',
+              'color':'#fff' });
+          setPeriod();
+          obj.find('.list').fadeOut(400);
+        });
+      });
+    };
+  })(jQuery);
   </script>
 </body>
 </html>

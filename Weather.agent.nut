@@ -215,6 +215,7 @@ function reset() {
     settings.debug <- false;
     settings.power <- true;
     settings.repeat <- false;
+    settings.period <- 15;
     server.save(settings);
 }
 
@@ -237,13 +238,7 @@ local loadedSettings = server.load();
 
 if (loadedSettings.len() == 0) {
     // No saved data, so save defaults
-    settings = {};
-    settings.angle <- 0;
-    settings.bright <- 15;
-    settings.debug <- false;
-    settings.power <- true;
-    settings.repeat <- false;
-    server.save(settings);
+    reset();
 } else {
     // Clear settings if required (but only if we HAVE saved settings)
     if (clearSettings) {
@@ -258,6 +253,7 @@ if (loadedSettings.len() == 0) {
             settings.debug <- debug;
         }
 
+        if (!("period" in settings)) settings.period <- 15;
         if (!("power" in settings)) settings.power <- true;
         if (!("repeat" in settings)) settings.repeat <- false;
     }
@@ -273,6 +269,11 @@ api = Rocky();
 
 // GET at / returns the UI
 api.get("/", function(context) {
+    context.setHeader("Location", http.agenturl() + "/index.html");
+    context.send(301);
+});
+
+api.get("/index.html", function(context) {
     context.send(200, format(HTML_STRING, http.agenturl()));
 });
 
@@ -298,6 +299,7 @@ api.get("/current", function(context) {
     data.debug <- settings.debug;
     data.power <- settings.power;
     data.repeat <- settings.repeat;
+    data.period <- settings.period;
     data = http.jsonencode(data);
     context.send(200, data);
 });
@@ -373,6 +375,13 @@ api.post("/settings", function(context) {
             if (debug) server.log("Repeat mode " + (r ? "en" : "dis") + "abled");
             device.send("weather.set.repeat", r);
             settings.repeat = r;
+        }
+
+        if ("period" in data) {
+            local p = data.period.tointeger();
+            if (debug) server.log("Repeat period set to " + p);
+            device.send("weather.set.period", p);
+            settings.period = p;
         }
     } catch (err) {
         server.error(err);

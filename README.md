@@ -51,13 +51,14 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
-- 3.10 *In Development*
+- 3.10 &mdash; *In Development*
+    - Add control to set the repeat period
     - Minor code changes
-- 3.9 *30 July 2018*
+- 3.9 &mdash; *30 July 2018*
     - Add [DisconnectionManager 2.0.0](https://github.com/smittytone/generic/blob/master/disconnect.nut)
     - Add periodic repeat of the current forecast on the display, enabled or disbabled via the web UI
     - Add control to turn off (eg. at night) or turn on the display 
-- 3.8 *June 8, 2018*
+- 3.8 &mdash; *8 June 2018*
     - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
         - Update Web UI based on Bootstrap
         - Separate out Web UI into own file for clarity
