@@ -184,6 +184,7 @@ function displayWeather(data) {
         ls = ls + format("Out: %.1f", data.temp.tofloat()) + "\xC2\xB0" + "c";
         if (localTemp != null) ls = ls + " In: " + localTemp + "\xC2\xB0" + "c";
         seriallog.log(ls);
+        seriallog.log("Current repeat settings: period is " + displayPeriod + "s, repeat is " + (displayRepeat ? "on" : "off"));
     }
 }
 
@@ -191,12 +192,16 @@ function displayWeather(data) {
 function refreshDisplay(data) {
     // Call this function when you need to update the display manually
     // It will halt the periodic refresh timer (set in 'displayWeather()')
-    if (refreshTimer != null) {
+    clearTimer();
+    displayWeather(data);
+}
+
+// Function to clear any display refresh timer in flight
+function clearTimer() {
+    if  (refreshTimer != null) {
         imp.cancelwakeup(refreshTimer);
         refreshTimer = null;
     }
-
-    displayWeather(data);
 }
 
 // Disconnection Manager reporting handler function
@@ -335,10 +340,7 @@ agent.on("weather.set.repeat", function(r) {
     if (debug) seriallog.log("Turning repeat mode " + (r ? "on" : "off"));
     displayRepeat = r;
     if (r && displayOn && savedData != null) refreshDisplay(savedData);
-    if (!r && refreshTimer != null) {
-        imp.cancelwakeup(refreshTimer);
-        refreshTimer = null;
-    }
+    if (!r) clearTimer();
 });
 
 agent.on("weather.set.settings", function(data) {
@@ -376,9 +378,17 @@ agent.on("weather.set.settings", function(data) {
         //if (displayOn && displayRepeat && savedData != null) refreshDisplay(savedData);
     }
 
+    if ("period" in data) {
+        if (data.period * 60 != displayPeriod) {
+            displayPeriod = data.period * 60;
+            didChange = true;
+        }
+    }
+
     if (didChange) {
         if (debug) seriallog.log("Updating display based on new settings");
         if (displayOn) {
+            clearTimer();
             matrix.init(bright, angle);
             if (savedData != null) refreshDisplay(savedData);
         } else {
@@ -388,7 +398,12 @@ agent.on("weather.set.settings", function(data) {
 });
 
 agent.on("weather.set.period", function(period) {
+    period = period * 60;
     if (period != displayPeriod) displayPeriod = period;
+    if (displayRepeat) {
+        clearTimer();
+        if (savedData != null) refreshDisplay(savedData);
+    }
 });
 
 agent.on("weather.set.reboot", function(dummy) {
