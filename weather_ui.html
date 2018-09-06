@@ -239,6 +239,7 @@
       document.getElementById('repeat').checked = data.repeat;
       
       let s = data.period.toString() + ' Minute';
+      if (data.period > 1) { s = s + 's'; }
       document.getElementById('rfield').value = s;
 
       if (data.power !== isOn) {
