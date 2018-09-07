@@ -327,6 +327,7 @@ api.post("/update", function(context) {
                 sendForecast(true);
             } else if (data.action == "reboot") {
                 if (debug) server.log("Restarting Device");
+                reset();
                 device.send("weather.set.reboot", true);
             } else if (data.action == "power") {
                 if (debug) server.log("Switching display power");
@@ -444,8 +445,9 @@ api.get("/controller/state", function(context) {
     // Sends a status string, eg. "0.1"
     // First digit it 1/0 (true/false) for display is connected
     // Second digit it 1/0 (true/false) for display is powered
-    local data = (device.isconnected() ? "1." : "0.") + (settings.power ? "1" : "0");
-    context.send(200, data);
+    local data = { "isconnected" : device.isconnected(),
+                   "ispowered" : settings.power };
+    context.send(200, http.jsonencode(data));
 });
 
 // In 'AGENT_START_TIME' seconds, check if the device has not synced (as far as
