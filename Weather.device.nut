@@ -361,7 +361,7 @@ agent.on("weather.set.period", function(period) {
 
 agent.on("weather.set.reboot", function(dummy) {
     // The user has asked the device to reboot
-    local v = bootinfo.version().tofload();
+    local v = bootinfo.version().tofloat    ();
     if (v > 38.0) {
       imp.reset();
     } else {
