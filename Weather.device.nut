@@ -35,7 +35,7 @@ local bright = INITIAL_BRIGHT;
 local displayOn = true;
 local displayRepeat = false;
 local displayPeriod = 300;
-local debug = true;
+local debug = false;
 local connecting = false;
 
 
@@ -243,7 +243,7 @@ function disHandler(event) {
 // START PROGRAM
 
 // Set up locator
-locator = Location(null, true);
+locator = Location(null, debug);
 
 // Set up the disconnection handler function
 disconnectionManager.eventCallback = disHandler;
@@ -302,6 +302,7 @@ agent.on("weather.set.local.temp", function(temp) {
 
 agent.on("weather.set.debug", function(value) {
     // The user has told the device to enable or disable debugging messages
+    seriallog.log("Debugging turned " + (value ? "on" : "off"));
     debug = value;
 });
 
@@ -365,12 +366,11 @@ agent.on("weather.set.reboot", function(dummy) {
 
 agent.on("weather.set.settings", function(data) {
     // The agent has relayed the device settings
-    if (debug) seriallog.log("Received device settings from agent");
-    
     displayOn = data.power;
     bright = data.bright;
     angle = data.angle;
     debug = data.debug;
+    locator.setDebug(debug);
     displayRepeat = data.repeat;
     displayPeriod = data.period * 60;
 
@@ -380,6 +380,8 @@ agent.on("weather.set.settings", function(data) {
         matrix.clearDisplay();
     }
 
+    if (debug) seriallog.log("Received device settings from agent");
+    
     // The device's settings are now in place, so get its location
     agent.send("weather.get.location", true);
 });
