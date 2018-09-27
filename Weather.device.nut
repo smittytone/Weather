@@ -34,7 +34,9 @@ local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
 local displayOn = true;
 local displayRepeat = false;
-local debug = true;
+local displayPeriod = 300;
+local debug = false;
+local connecting = false;
 
 
 // DEVICE FUNCTIONS
@@ -46,8 +48,7 @@ function intro() {
     local mx = 6, my = 7;
     local nx = 0, ny = 0;
 
-
-    for (local i = 0 ; i < 64 ; ++i) {
+    for (local i = 0 ; i < 64 ; i++) {
         matrix.plot(x, y, 1).draw();
 
         if (dx == 1 && x == mx) {
@@ -83,7 +84,7 @@ function outro() {
     local mx = 5, my = 4;
     local nx = 3, ny = 2;
 
-    for (local i = 0 ; i < 64 ; ++i) {
+    for (local i = 0 ; i < 64 ; i++) {
         matrix.plot(x, y, 0).draw();
 
         if (dx == 1 && x == mx) {
@@ -142,9 +143,9 @@ function displayWeather(data) {
     local icon = null;
 
     try {
-        icon = clone(iconset[data.icon]);
+        icon = iconset[data.icon];
     } catch (error) {
-        icon = clone(iconset[none]);
+        icon = iconset.none;
     }
 
     // Store the current icon and forecast string
@@ -170,7 +171,7 @@ function displayWeather(data) {
 
         // Set up a timer for the display repeat, if refresh display mode is enabled
         if (savedData != null && displayRepeat) {
-            refreshTimer = imp.wakeup(DISPLAY_REFRESH_INTERVAL, function() {
+            refreshTimer = imp.wakeup(displayPeriod, function() {
                 refreshTimer = null;
                 displayWeather(savedData);
             });
@@ -183,6 +184,7 @@ function displayWeather(data) {
         ls = ls + format("Out: %.1f", data.temp.tofloat()) + "\xC2\xB0" + "c";
         if (localTemp != null) ls = ls + " In: " + localTemp + "\xC2\xB0" + "c";
         seriallog.log(ls);
+        seriallog.log("Current repeat settings: period is " + displayPeriod + "s, repeat is " + (displayRepeat ? "on" : "off"));
     }
 }
 
@@ -190,19 +192,29 @@ function displayWeather(data) {
 function refreshDisplay(data) {
     // Call this function when you need to update the display manually
     // It will halt the periodic refresh timer (set in 'displayWeather()')
-    if (refreshTimer != null) imp.cancelwakeup(refreshTimer);
+    clearTimer();
     displayWeather(data);
+}
+
+// Function to clear any display refresh timer in flight
+function clearTimer() {
+    if  (refreshTimer != null) {
+        imp.cancelwakeup(refreshTimer);
+        refreshTimer = null;
+    }
 }
 
 // Disconnection Manager reporting handler function
 function disHandler(event) {
-    if ("message" in event) seriallog.log(event.message);
+    if ("message" in event) seriallog.log("Disconnection Manager says: " + event.message);
 
     if ("type" in event) {
         if (event.type == "connected") {
-            // Re-acquire settings, location
-            agent.send("weather.get.settings", true);
-            agent.send("weather.get.location", true);
+            // Re-acquire settings, location after a disconnection
+            if (connecting) {
+                connecting = false;
+                agent.send("weather.get.settings", true);
+            }
         } else if (event.type == "disconnected") {
             // Notify of disconnection...
             if (displayOn) matrix.displayLine("Disconnected");
@@ -221,7 +233,8 @@ function disHandler(event) {
             }
         } else if (event.type == "connecting") {
             // Notify of disconnection...
-            seriallog.log("Attempting to connect...");
+            seriallog.log("Disconnection Manager says: Attempting to connect...");
+            connecting = false;
         }
     }
 }
@@ -230,7 +243,7 @@ function disHandler(event) {
 // START PROGRAM
 
 // Set up locator
-locator = Location(null, true);
+locator = Location(null, debug);
 
 // Set up the disconnection handler function
 disconnectionManager.eventCallback = disHandler;
@@ -254,29 +267,25 @@ server.onshutdown(function(reason) {
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 matrix = HT16K33Matrix(hardware.i2c89, 0x70);
 matrix.init(bright, angle);
-matrix.defineChar(0, [0x3C, 0x42, 0x95, 0xA1, 0xA1, 0x95, 0x42, 0x3C]);
-matrix.defineChar(1, [0x70, 0x18, 0x7D, 0xB6, 0xBE, 0x3E]);
-matrix.defineChar(2, [0xBE, 0xB6, 0x7D, 0x18, 0x70]);
 
 // Splash screen animation
 intro();
 outro();
 
 // Set up weather icons
-iconset.clearday <- [0x89,0x42,0x18,0xBC,0x3D,0x18,0x42,0x91];
-// iconset.clearnight <- [0x0,0x0,0x0,0x81,0xE7,0x7E,0x3C,0x18];
-iconset.rain <- [0x8C,0x5E,0x1E,0x5F,0x3F,0x9F,0x5E,0xC];
-iconset.lightrain <- [0x8C,0x52,0x12,0x51,0x31,0x91,0x52,0xC];
-iconset.snow <- [0x14,0x49,0x2A,0x1C,0x1C,0x2A,0x49,0x14];
-iconset.sleet <- [0x4C,0xBE,0x5E,0xBF,0x5F,0xBF,0x5E,0xAC];
-iconset.wind <- [0x14,0x14,0x14,0x14,0x14,0x55,0x55,0x22];
-iconset.fog <- [0x55,0xAA,0x55,0xAA,0x55,0xAA,0x55,0xAA];
-iconset.cloudy <- [0xC,0x1E,0x1E,0x1F,0x1F,0x1F,0x1E,0xC];
-iconset.partlycloudy <- [0xC,0x12,0x12,0x11,0x11,0x11,0x12,0xC];
-iconset.thunderstorm <- [0x0,0x0,0x0,0xF0,0x1C,0x7,0x0,0x0];
-iconset.tornado <- [0x0,0x2,0x36,0x7D,0xDD,0x8D,0x6,0x2];
-iconset.none <- [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
-iconset.clearnight <- [0x3C,0x42,0x81,0xC3,0xFF,0xFF,0x7E,0x3C];
+iconset.clearday <-     "\x89\x42\x18\xBC\x3D\x18\x42\x91";
+iconset.rain <-         "\x8C\x5E\x1E\x5F\x3F\x9F\x5E\x0C";
+iconset.lightrain <-    "\x8C\x52\x12\x51\x31\x91\x52\x0C";
+iconset.snow <-         "\x14\x49\x2A\x1C\x1C\x2A\x49\x14";
+iconset.sleet <-        "\x4C\xBE\x5E\xBF\x5F\xBF\x5E\xAC";
+iconset.wind <-         "\x14\x14\x14\x14\x14\x55\x55\x22";
+iconset.fog <-          "\x55\xAA\x55\xAA\x55\xAA\x55\xAA";
+iconset.cloudy <-       "\x0C\x1E\x1E\x1F\x1F\x1F\x1E\x0C";
+iconset.partlycloudy <- "\x0C\x12\x12\x11\x11\x11\x12\x0C";
+iconset.thunderstorm <- "\x00\x00\x00\xF0\x1C\x07\x00\x00";
+iconset.tornado <-      "\x00\x02\x36\x7D\xDD\x8D\x06\x02";
+iconset.clearnight <-   "\x3C\x42\x81\xC3\xFF\xFF\x7E\x3C";  // old: "\x00\x00\x00\x81\xE7\x7E\x3C\x18";
+iconset.none <-         "\x00\x00\x02\xB9\x09\x06\x00\x00";
 
 // Set up agent interaction
 agent.on("weather.show.forecast", function(data) {
@@ -293,6 +302,7 @@ agent.on("weather.set.local.temp", function(temp) {
 
 agent.on("weather.set.debug", function(value) {
     // The user has told the device to enable or disable debugging messages
+    seriallog.log("Debugging turned " + (value ? "on" : "off"));
     debug = value;
 });
 
@@ -324,64 +334,29 @@ agent.on("weather.set.power", function(p) {
     if (displayOn && savedData != null) refreshDisplay(savedData);
 });
 
-agent.on("weather.set.repeat", function(r) {
+agent.on("weather.set.repeat", function(shouldRepeat) {
     // The user has enabled or disabled repeat mode
     // ie. the display repeats periodically or is only updated when a new forecast comes in
     if (debug) seriallog.log("Turning repeat mode " + (r ? "on" : "off"));
-    displayRepeat = r;
-    if (r && displayOn && savedData != null) refreshDisplay(savedData);
-    if (!r && refreshTimer != null) imp.cancelwakeup(refreshTimer);
+    displayRepeat = shouldRepeat;
+    if (shouldRepeat && displayOn && savedData != null) refreshDisplay(savedData);
+    if (!shouldRepeat) clearTimer();
 });
 
-agent.on("weather.set.settings", function(data) {
-    // The agent has relayed the device settings
-    if (debug) seriallog.log("Received device settings from agent");
-    local didChange = false;
-
-    if ("power" in data) {
-        if (data.power != displayOn) {
-            displayOn = data.power;
-            didChange = true;
-        }
-    }
-
-    if ("bright" in data) {
-        if (data.bright != bright) {
-            bright = data.bright;
-            didChange = true;
-        }
-    }
-
-    if ("angle" in data) {
-        if (data.angle != angle) {
-            angle = data.angle;
-            didChange = true;
-        }
-    }
-
-    if ("debug" in data) {
-        if (debug != data.debug) debug = data.debug;
-    }
-
-    if ("repeat" in data) {
-        if (displayRepeat != data.repeat) displayRepeat = data.repeat;
-        if (displayOn && displayRepeat && savedData != null) refreshDisplay(savedData);
-    }
-
-    if (didChange) {
-        if (debug) seriallog.log("Updating display based on new settings");
-        if (displayOn) {
-            matrix.init(bright, angle);
-            if (savedData != null) refreshDisplay(savedData);
-        } else {
-            matrix.clearDisplay();
-        }
+agent.on("weather.set.period", function(period) {
+    // Convert minutes (agent setting) to seconds (device setting)
+    displayPeriod = period * 60;
+    
+    // If we're repeating the display, refresh it now
+    if (displayRepeat) {
+        clearTimer();
+        if (savedData != null) refreshDisplay(savedData);
     }
 });
 
 agent.on("weather.set.reboot", function(dummy) {
     // The user has asked the device to reboot
-    local v = bootinfo.version().tofload();
+    local v = bootinfo.version().tofloat    ();
     if (v > 38.0) {
       imp.reset();
     } else {
@@ -389,13 +364,35 @@ agent.on("weather.set.reboot", function(dummy) {
     }
 });
 
-// At this point, the device will wait for a forecast from the agent.
-// It will display this when it receives it, but we should check that the server is there
+agent.on("weather.set.settings", function(data) {
+    // The agent has relayed the device settings
+    displayOn = data.power;
+    bright = data.bright;
+    angle = data.angle;
+    debug = data.debug;
+    locator.setDebug(debug);
+    displayRepeat = data.repeat;
+    displayPeriod = data.period * 60;
+
+    if (displayOn) {
+        matrix.init(bright, angle);
+    } else {
+        matrix.clearDisplay();
+    }
+
+    if (debug) seriallog.log("Received device settings from agent");
+    
+    // The device's settings are now in place, so get its location
+    agent.send("weather.get.location", true);
+});
+
+// If the device is connected, request its settings from the agent.
+// This will in turn get the device's location, causing the agent to 
+// begin sending forecasts every 15 minutes.
 if (server.isconnected()) {
     // Tell the agent that the device is ready
     if (debug) seriallog.log("Requesting a forecast and settings from agent");
     agent.send("weather.get.settings", true);
-    agent.send("weather.get.location", true);
 } else {
     // Link down - try to connect to the server...
     disconnectionManager.connect();

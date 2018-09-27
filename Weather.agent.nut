@@ -32,6 +32,7 @@ local myLongitude = -0.123038;
 local myLatitude = 51.568330;
 local myLocation = "London, UK";
 local locationTime = -1;
+local darkSkyCount = 0;
 
 local deviceSyncFlag = false;
 local debug = false;
@@ -39,8 +40,12 @@ local clearSettings = false;
 
 // FORECAST FUNCTIONS
 function sendForecast(dummy) {
-   if (debug) server.log("Requesting weather forecast data from Dark Sky");
-    weather.forecastRequest(myLongitude, myLatitude, forecastCallback.bindenv(this));
+    // Request a weather forecast, but only if there are less than 1000 previous requests today
+    // NOTE the count is maintined by DarkSky; we reload it every time
+    if (darkSkyCount < 990) {
+        if (debug) server.log("Requesting weather forecast data from Dark Sky");
+        weather.forecastRequest(myLongitude, myLatitude, forecastCallback.bindenv(this));
+    }
 }
 
 function forecastCallback(err, data) {
@@ -97,6 +102,7 @@ function forecastCallback(err, data) {
             // Send an event to IFTTT to trigger a warning email, if necessary
             if (data.callCount > 950) mailer.sendEvent("darksky_warning", [data.callCount, "out of", 1000]);
             if (debug) server.log("Current Dark Sky API call tally: " + data.callCount + "/1000");
+            darkSkyCount = data.callCount;
         }
     }
 
@@ -132,8 +138,18 @@ function forecastCallback(err, data) {
 
 // LOCATION FUNCTIONS
 function locationLookup(dummy) {
-    if (restartTimer) imp.cancelwakeup(restartTimer);
-    restartTimer = null;
+    // Now we've received a message from the device, if the agent restart timer is
+    // running, kill it
+    if (restartTimer != null) {
+        imp.cancelwakeup(restartTimer);
+        restartTimer = null;
+    }
+
+    // Kill the weather forecast timer
+    if (weatherTimer != null) {
+        imp.cancelwakeup(weatherTimer);
+        weatherTimer = null;
+    }
 
     if ((locationTime != -1) && (time() - locationTime < 86400)) {
         // No need to check within one day of locating the device
@@ -148,7 +164,6 @@ function locationLookup(dummy) {
             myLatitude = locale.latitude;
             myLocation = parsePlaceData(locale.placeData);
             locationTime = time();
-            sendForecast(true);
 
             if (debug) {
                 server.log("Co-ordinates: " + myLongitude + ", " + myLatitude);
@@ -157,6 +172,8 @@ function locationLookup(dummy) {
 
             local tz = locator.getTimezone();
             if (!("error" in tz) && debug) server.log("Timezone    : " + tz.gmtOffsetStr);
+
+            sendForecast(true);
         } else {
             server.error(locale.err);
             imp.wakeup(10, function() {
@@ -165,6 +182,7 @@ function locationLookup(dummy) {
         }
     });
 
+    // Mark device as connected, since its arrival initiated this call
     deviceSyncFlag = true;
 }
 
@@ -202,10 +220,6 @@ function parsePlaceData(data) {
 }
 
 // SETTINGS FUNCTIONS
-function getSettings(dummy) {
-    device.send("weather.set.settings", settings);
-}
-
 function reset() {
     if (debug) server.log("Clearing settings to default values");
     server.save({});
@@ -215,6 +229,7 @@ function reset() {
     settings.debug <- false;
     settings.power <- true;
     settings.repeat <- false;
+    settings.period <- 15;
     server.save(settings);
 }
 
@@ -237,13 +252,7 @@ local loadedSettings = server.load();
 
 if (loadedSettings.len() == 0) {
     // No saved data, so save defaults
-    settings = {};
-    settings.angle <- 0;
-    settings.bright <- 15;
-    settings.debug <- false;
-    settings.power <- true;
-    settings.repeat <- false;
-    server.save(settings);
+    reset();
 } else {
     // Clear settings if required (but only if we HAVE saved settings)
     if (clearSettings) {
@@ -258,6 +267,7 @@ if (loadedSettings.len() == 0) {
             settings.debug <- debug;
         }
 
+        if (!("period" in settings)) settings.period <- 15;
         if (!("power" in settings)) settings.power <- true;
         if (!("repeat" in settings)) settings.repeat <- false;
     }
@@ -265,14 +275,21 @@ if (loadedSettings.len() == 0) {
 
 // Register the function to call when the device asks for a forecast
 device.on("weather.get.location", locationLookup);
-device.on("weather.get.forecast", sendForecast);
-device.on("weather.get.settings", getSettings);
+//device.on("weather.get.forecast", sendForecast);
+device.on("weather.get.settings", function(dummy) {
+    device.send("weather.set.settings", settings);
+});
 
 // Set up the API that the agent will server
 api = Rocky();
 
 // GET at / returns the UI
 api.get("/", function(context) {
+    context.setHeader("Location", http.agenturl() + "/index.html");
+    context.send(301);
+});
+
+api.get("/index.html", function(context) {
     context.send(200, format(HTML_STRING, http.agenturl()));
 });
 
@@ -298,6 +315,7 @@ api.get("/current", function(context) {
     data.debug <- settings.debug;
     data.power <- settings.power;
     data.repeat <- settings.repeat;
+    data.period <- settings.period;
     data = http.jsonencode(data);
     context.send(200, data);
 });
@@ -315,7 +333,12 @@ api.post("/update", function(context) {
                 sendForecast(true);
             } else if (data.action == "reboot") {
                 if (debug) server.log("Restarting Device");
+                reset();
                 device.send("weather.set.reboot", true);
+            } else if (data.action == "power") {
+                if (debug) server.log("Switching display power");
+                settings.power = !settings.power;
+                device.send("weather.set.power", settings.power);
             } else if (data.action == "reset") {
                 // Clear and reset the settings, then
                 // reboot the device to apply them
@@ -370,6 +393,13 @@ api.post("/settings", function(context) {
             device.send("weather.set.repeat", r);
             settings.repeat = r;
         }
+
+        if ("period" in data) {
+            local p = data.period.tointeger();
+            if (debug) server.log("Repeat period set to " + p);
+            device.send("weather.set.period", p);
+            settings.period = p;
+        }
     } catch (err) {
         server.error(err);
         context.send(400, "Bad data posted");
@@ -418,8 +448,12 @@ api.get("/controller/info", function(context) {
 
 // GET at /controller/state returns device status for Controller
 api.get("/controller/state", function(context) {
-    local data = device.isconnected() ? "1" : "0";
-    context.send(200, data);
+    // Sends a status string, eg. "0.1"
+    // First digit it 1/0 (true/false) for display is connected
+    // Second digit it 1/0 (true/false) for display is powered
+    local data = { "isconnected" : device.isconnected(),
+                   "ispowered" : settings.power };
+    context.send(200, http.jsonencode(data));
 });
 
 // In 'AGENT_START_TIME' seconds, check if the device has not synced (as far as
