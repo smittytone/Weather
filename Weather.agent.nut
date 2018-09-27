@@ -32,6 +32,7 @@ local myLongitude = -0.123038;
 local myLatitude = 51.568330;
 local myLocation = "London, UK";
 local locationTime = -1;
+local darkSkyCount = 0;
 
 local deviceSyncFlag = false;
 local debug = false;
@@ -39,8 +40,12 @@ local clearSettings = false;
 
 // FORECAST FUNCTIONS
 function sendForecast(dummy) {
-   if (debug) server.log("Requesting weather forecast data from Dark Sky");
-    weather.forecastRequest(myLongitude, myLatitude, forecastCallback.bindenv(this));
+    // Request a weather forecast, but only if there are less than 1000 previous requests today
+    // NOTE the count is maintined by DarkSky; we reload it every time
+    if (darkSkyCount < 990) {
+        if (debug) server.log("Requesting weather forecast data from Dark Sky");
+        weather.forecastRequest(myLongitude, myLatitude, forecastCallback.bindenv(this));
+    }
 }
 
 function forecastCallback(err, data) {
@@ -97,6 +102,7 @@ function forecastCallback(err, data) {
             // Send an event to IFTTT to trigger a warning email, if necessary
             if (data.callCount > 950) mailer.sendEvent("darksky_warning", [data.callCount, "out of", 1000]);
             if (debug) server.log("Current Dark Sky API call tally: " + data.callCount + "/1000");
+            darkSkyCount = data.callCount;
         }
     }
 

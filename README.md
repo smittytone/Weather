@@ -51,8 +51,9 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
-- 3.10 &mdash; *In Development*
+- 3.10 &mdash; *27 September 2018*
     - Add control to set the repeat period
+    - Stop DarkSky requests busting the limit
     - Minor code changes
 - 3.9 &mdash; *30 July 2018*
     - Add [DisconnectionManager 2.0.0](https://github.com/smittytone/generic/blob/master/disconnect.nut)
