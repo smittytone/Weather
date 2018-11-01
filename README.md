@@ -1,4 +1,4 @@
-# Weather 3.10 #
+# Weather 3.10.1 #
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
@@ -51,15 +51,17 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
-- 3.10 &mdash; *27 September 2018*
+- 3.10.1 &mdash; *1 November 2018*
+    - Update dependencies
+- 3.10.0 &mdash; *27 September 2018*
     - Add control to set the repeat period
     - Stop DarkSky requests busting the limit
     - Minor code changes
-- 3.9 &mdash; *30 July 2018*
+- 3.9.0 &mdash; *30 July 2018*
     - Add [DisconnectionManager 2.0.0](https://github.com/smittytone/generic/blob/master/disconnect.nut)
     - Add periodic repeat of the current forecast on the display, enabled or disbabled via the web UI
     - Add control to turn off (eg. at night) or turn on the display 
-- 3.8 &mdash; *8 June 2018*
+- 3.8.0 &mdash; *8 June 2018*
     - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
         - Update Web UI based on Bootstrap
         - Separate out Web UI into own file for clarity
@@ -68,10 +70,10 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
     - Update to [JQuery 3.3.1](https://jquery.com)
     - Prevent Ajax XHR cacheing
     - Add preliminary support for polite deployment
-- 3.7
+- 3.7.0
     - Add support for [Location class 1.4.1](https://github.com/smittytone/Location)
     - Assorted code tweaks, minor bug fixes made
-- 3.6
+- 3.6.0
     - Add support for [Location class 1.3.0](https://github.com/smittytone/Location)
     - Add icon for light rain (drizzle)
     - Nominate generic fonts for web UI in case web fonts can't be loaded
