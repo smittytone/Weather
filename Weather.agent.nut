@@ -5,13 +5,20 @@
 #require "DarkSky.class.nut:1.0.1"
 #require "Rocky.class.nut:2.0.1"
 #require "IFTTT.class.nut:1.0.0"
-#import "../Location/location.class.nut"
+
+// NOTE If you are not using a tool like Squinter or impt, please
+//      paste the contents of the file named below into
+//      the agent code at this point, and then delete or comment out
+//      the following #import statement
+#import "../Location/location.class.nut"            // Source file in https://github.com/smittytone/Location
+
 
 // CONSTANTS
 const FORECAST_REFRESH_INTERVAL = 900;  // 15 minutes
 const AGENT_START_TIME = 120;
-// If you are NOT using Squinter or a similar tool, replace the #import statement below
-// with the contents of the named file (weather_ui.html)
+// NOTE If you are not using a tool like Squinter or impt, please
+//      replace the #import statement below with the contents of 
+//      the named file (weather_ui.html)
 const HTML_STRING = @"
 #import "weather_ui.html"
 ";
@@ -230,6 +237,7 @@ function reset() {
     settings.power <- true;
     settings.repeat <- false;
     settings.period <- 15;
+    settings.inverse <- false;
     server.save(settings);
 }
 
@@ -270,6 +278,7 @@ if (loadedSettings.len() == 0) {
         if (!("period" in settings)) settings.period <- 15;
         if (!("power" in settings)) settings.power <- true;
         if (!("repeat" in settings)) settings.repeat <- false;
+        if (!("inverse" in settings)) settings.inverse <- false;
     }
 }
 
@@ -316,6 +325,7 @@ api.get("/current", function(context) {
     data.power <- settings.power;
     data.repeat <- settings.repeat;
     data.period <- settings.period;
+    data.inverse <- settings.inverse;
     data = http.jsonencode(data);
     context.send(200, data);
 });
@@ -361,7 +371,8 @@ api.post("/update", function(context) {
 // { "angle"  : <0-270>,
 //   "bright" : <0-15>,
 //   "power"  : <true/false>,
-//   "repeat" : <true/false> }
+//   "repeat" : <true/false>,
+//   "video"  : <true/false> }
 api.post("/settings", function(context) {
     try {
         local data = http.jsondecode(context.req.rawbody);
@@ -399,6 +410,13 @@ api.post("/settings", function(context) {
             if (debug) server.log("Repeat period set to " + p);
             device.send("weather.set.period", p);
             settings.period = p;
+        }
+
+        if ("video" in data) {
+            local i = data.video;
+            if (debug) server.log("LED set to " + (i ? "black on green" : "green on black"));
+            device.send("weather.set.video", i);
+            setting.inverse = i;
         }
     } catch (err) {
         server.error(err);

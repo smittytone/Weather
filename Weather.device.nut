@@ -6,11 +6,11 @@
 //      paste the contents of the file named in each line below into
 //      the device code at this point, and then delete or comment out
 //      all of the following #import statements
-#import "../Location/location.class.nut"
-#import "../HT16K33Matrix/ht16k33matrix.class.nut"
-#import "../generic/seriallog.nut"
-#import "../generic/bootmessage.nut"
-#import "../generic/disconnect.nut"
+#import "../HT16K33Matrix/ht16k33matrix.class.nut"      // Source file in https://github.com/smittytone/HT16K33Matrix
+#import "../Location/location.class.nut"                // Source file in https://github.com/smittytone/Location
+#import "../generic/seriallog.nut"                      // Source file in https://github.com/smittytone/generic
+#import "../generic/bootmessage.nut"                    // Source file in https://github.com/smittytone/generic
+#import "../generic/disconnect.nut"                     // Source file in https://github.com/smittytone/generic
 
 
 // CONSTANTS
@@ -37,6 +37,7 @@ local displayRepeat = false;
 local displayPeriod = 300;
 local debug = false;
 local connecting = false;
+local inverse = false;
 
 
 // DEVICE FUNCTIONS
@@ -205,7 +206,7 @@ function clearTimer() {
 }
 
 // Disconnection Manager reporting handler function
-function disHandler(event) {
+function discHandler(event) {
     if ("message" in event) seriallog.log("Disconnection Manager says: " + event.message);
 
     if ("type" in event) {
@@ -246,7 +247,7 @@ function disHandler(event) {
 locator = Location(null, debug);
 
 // Set up the disconnection handler function
-disconnectionManager.eventCallback = disHandler;
+disconnectionManager.eventCallback = discHandler;
 disconnectionManager.reconnectDelay = RECONNECT_DELAY;
 disconnectionManager.reconnectTimeout = RECONNECT_TIMEOUT;
 disconnectionManager.start();
@@ -356,11 +357,11 @@ agent.on("weather.set.period", function(period) {
 
 agent.on("weather.set.reboot", function(dummy) {
     // The user has asked the device to reboot
-    local v = bootinfo.version().tofloat    ();
+    local v = bootinfo.version().tofloat();
     if (v > 38.0) {
-      imp.reset();
+        imp.reset();
     } else {
-      server.restart();
+        server.restart();
     }
 });
 
@@ -373,9 +374,11 @@ agent.on("weather.set.settings", function(data) {
     locator.setDebug(debug);
     displayRepeat = data.repeat;
     displayPeriod = data.period * 60;
+    inverse = data.inverse;
 
     if (displayOn) {
         matrix.init(bright, angle);
+        matrix.setInverse(inverse);
     } else {
         matrix.clearDisplay();
     }
@@ -384,6 +387,13 @@ agent.on("weather.set.settings", function(data) {
     
     // The device's settings are now in place, so get its location
     agent.send("weather.get.location", true);
+});
+
+agent.on("weather.set.video", function(state) {
+    if (inverse != state) {
+        matrix.setInverse(state);
+        inverse = state;
+    }
 });
 
 // If the device is connected, request its settings from the agent.

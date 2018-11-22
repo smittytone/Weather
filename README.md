@@ -1,4 +1,4 @@
-# Weather 3.10.1 #
+# Weather 3.11.0 #
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
@@ -51,6 +51,8 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 3.11.0 &mdash; *Unreleased*
+    - Add inverse video option
 - 3.10.1 &mdash; *1 November 2018*
     - Update dependencies
 - 3.10.0 &mdash; *27 September 2018*
@@ -62,16 +64,14 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
     - Add periodic repeat of the current forecast on the display, enabled or disbabled via the web UI
     - Add control to turn off (eg. at night) or turn on the display 
 - 3.8.0 &mdash; *8 June 2018*
-    - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
-        - Update Web UI based on Bootstrap
-        - Separate out Web UI into own file for clarity
-    - Add support for [Location class 1.5.0](https://github.com/smittytone/Location)
+    - Update Web UI to be based on [Bootstrap 4.1.1](https://getbootstrap.com/)
+    - Separate out Web UI into own file for clarity
     - Add support for [serial logging](https://github.com/smittytone/generic/blob/master/seriallog.nut)
-    - Update to [JQuery 3.3.1](https://jquery.com)
-    - Prevent Ajax XHR cacheing
+    - Update dependencies, including [JQuery 3.3.1](https://jquery.com)
+    - Prevent Ajax XHR caching
     - Add preliminary support for polite deployment
 - 3.7.0
-    - Add support for [Location class 1.4.1](https://github.com/smittytone/Location)
+    - Update dependencies
     - Assorted code tweaks, minor bug fixes made
 - 3.6.0
     - Add support for [Location class 1.3.0](https://github.com/smittytone/Location)
