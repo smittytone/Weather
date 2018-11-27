@@ -266,7 +266,7 @@ server.onshutdown(function(reason) {
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
-matrix = HT16K33Matrix(hardware.i2c89, 0x70);
+matrix = HT16K33Matrix(hardware.i2c89, 0x70, true);
 matrix.init(bright, angle);
 
 // Splash screen animation
