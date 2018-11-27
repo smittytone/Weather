@@ -244,7 +244,7 @@ function discHandler(event) {
 // START PROGRAM
 
 // Set up locator
-locator = Location(null, debug);
+locator = Location();
 
 // Set up the disconnection handler function
 disconnectionManager.eventCallback = discHandler;
@@ -266,7 +266,7 @@ server.onshutdown(function(reason) {
 
 // Set up hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
-matrix = HT16K33Matrix(hardware.i2c89, 0x70, true);
+matrix = HT16K33Matrix(hardware.i2c89, 0x70);
 matrix.init(bright, angle);
 
 // Splash screen animation
@@ -305,6 +305,8 @@ agent.on("weather.set.debug", function(value) {
     // The user has told the device to enable or disable debugging messages
     seriallog.log("Debugging turned " + (value ? "on" : "off"));
     debug = value;
+    matrix.setDebug(debug);
+    locator.setDebug(debug);
 });
 
 agent.on("weather.set.angle", function(a) {
@@ -382,6 +384,10 @@ agent.on("weather.set.settings", function(data) {
     } else {
         matrix.clearDisplay();
     }
+
+    // Set class debugging level
+    matrix.setDebug(debug);
+    locator.setDebug(debug);
 
     if (debug) seriallog.log("Received device settings from agent");
     
