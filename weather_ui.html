@@ -192,16 +192,16 @@
         getState(updateReadout);
 
         // Set UI click actions
-        $('.update-button button').click(update);
-        $('.reboot-button button').click(reboot);
-        $('.reset-button button').click(reset);
-        $('.power-button button').click(power);
-        $('#angle0').click(setangle);
-        $('#angle90').click(setangle);
-        $('#angle180').click(setangle);
-        $('#angle270').click(setangle);
-        $('#debug').click(setdebug);
-        $('#repeat').click(setrepeat);
+        $('.update-button button').click(doUpdate);
+        $('.reboot-button button').click(doReboot);
+        $('.reset-button button').click(doReset);
+        $('.power-button button').click(setPower);
+        $('#angle0').click(setAngle);
+        $('#angle90').click(setAngle);
+        $('#angle180').click(setAngle);
+        $('#angle270').click(setAngle);
+        $('#debug').click(setDebug);
+        $('#repeat').click(setRepeat);
         $('#inverse').click(setInverse);
 
         var slider = document.getElementById('brightness');
@@ -218,7 +218,7 @@
         // Functions
         function updateSlider() {
             $('.brightness-status span').text($('#brightness').val());
-            setbright();
+            setBright();
         }
 
         function updateReadout(data) {
@@ -240,6 +240,7 @@
                 $('.brightness-status span').text(data.bright);
                 document.getElementById('debug').checked = data.debug;
                 document.getElementById('repeat').checked = data.repeat;
+                document.getElementById('inverse').checked = data.inverse;
         
                 let s = data.period.toString() + ' Minute';
                 if (data.period > 1) { s = s + 's'; }
@@ -254,7 +255,7 @@
 
             setTimeout(function() {
                 getState(updateReadout);
-            }, 120000);
+            }, 60000);
         }
 
         function getState(callback) {
@@ -264,67 +265,35 @@
                 type: 'GET',
                 success : function(response) {
                     response = JSON.parse(response);
-                    if (callback) {
-                        callback(response);
-                    }
+                    if (callback) { callback(response); }
                 },
                 cache: false
             });
         }
 
-        function update() {
+        function doUpdate() {
             // Trigger a forecast update
-            $.ajax({
-                url : agenturl + '/update',
-                type: 'POST',
-                data: JSON.stringify({ 'action' : 'update' }),
-                success : function(response) {
-                    getState(updateReadout);
-                },
-                cache: false
-            });
+            update({'action' : 'update'});
         }
 
-        function reboot() {
+        function doReboot() {
             // Trigger a device restart
-            $.ajax({
-                url : agenturl + '/update',
-                type: 'POST',
-                data: JSON.stringify({ 'action' : 'reboot' }),
-                success : function(response) {
-                    getState(updateReadout);
-                },
-                cache: false
-            });
+            update({'action' : 'reboot'});
         }
 
-        function reset() {
+        function doReset() {
             // Trigger a device reset
-            $.ajax({
-                url : agenturl + '/update',
-                type: 'POST',
-                data: JSON.stringify({ 'action' : 'reset' }),
-                success : function(response) {
-                    getState(updateReadout);
-                },
-                cache: false
-            });
+            update({'action' : 'reset'});
         }
 
-        function power() {
+        function setPower() {
             // Trigger the screen to turn off or on
             isOn = !isOn;
             $('.power-button button').text(isOn ? 'Turn Display Off' : 'Turn Display On');
-            
-            $.ajax({
-                url : agenturl + '/settings',
-                type: 'POST',
-                data: JSON.stringify({ 'power' : isOn }),
-                cache: false
-            });
+            set({ 'power' : isOn });
         }
 
-        function setangle() {
+        function setAngle() {
             // Set the device screen angle
             var s;
             var r = document.getElementsByName('angle');
@@ -343,36 +312,21 @@
             } else if (s == 3) {
                 s = 270;
             }
-
-            $.ajax({
-                url : agenturl + '/settings',
-                type: 'POST',
-                data: JSON.stringify({ 'angle' : s }),
-                cache: false
-            });
+            
+            set({'angle' : s});
         }
 
-        function setbright() {
+        function setBright() {
             // Set the device screen brightness
-            $.ajax({
-                url : agenturl + '/settings',
-                type: 'POST',
-                data: JSON.stringify({ 'bright' : $('#brightness').val() }),
-                cache: false
-            });
+            set({'bright' : $('#brightness').val()});
         }
 
-        function setdebug() {
+        function setDebug() {
             // Tell the device to enter or leave debug mode
-            $.ajax({
-                url : agenturl + '/debug',
-                type: 'POST',
-                data: JSON.stringify({ 'debug' : document.getElementById('debug').checked }),
-                cache: false
-            });
+            send({'debug' : document.getElementById('debug').checked},'/debug', null);
         }
 
-        function setrepeat() {
+        function setRepeat() {
             // Tell the device to enter or leave repeat mode
             let isChecked = document.getElementById('repeat').checked;
             
@@ -383,13 +337,7 @@
                     setPeriod();
                 }
             }
-
-            $.ajax({
-                url : agenturl + '/settings',
-                type: 'POST',
-                data: JSON.stringify({ 'repeat' : isChecked }),
-                cache: false
-            });
+            set({'repeat' : isChecked});
         }
 
         function setPeriod() {
@@ -402,12 +350,29 @@
             } else if (v == '5 Minutes') {
                 p = 5;
             }
-            
-            // Send the period to the agent
+            set({'period' : p.toString()});
+        }
+        
+        function setInverse() {
+            // Tell the device to enter or leave inverse video mode
+            set({ 'video' : document.getElementById('inverse').checked });
+        }
+
+        function set(data) {
+            // Send the data to the agent at /settings
+            send(data,'/settings', null);
+        }
+
+        function update(data) {
+            send(data, '/update', function(response){getState(updateReadout);});
+        }
+
+        function send(data, path, response) {
             $.ajax({
-                url : agenturl + '/settings',
+                url : agenturl + path,
                 type: 'POST',
-                data: JSON.stringify({ 'period' : p.toString() }),
+                data: JSON.stringify(data),
+                success: response,
                 cache: false
             });
         }

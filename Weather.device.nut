@@ -338,7 +338,7 @@ agent.on("weather.set.power", function(p) {
 agent.on("weather.set.repeat", function(shouldRepeat) {
     // The user has enabled or disabled repeat mode
     // ie. the display repeats periodically or is only updated when a new forecast comes in
-    if (debug) seriallog.log("Turning repeat mode " + (r ? "on" : "off"));
+    if (debug) seriallog.log("Turning repeat mode " + (shouldRepeat ? "on" : "off"));
     displayRepeat = shouldRepeat;
     if (shouldRepeat && displayOn && savedData != null) refreshDisplay(savedData);
     if (!shouldRepeat) clearTimer();
@@ -378,7 +378,7 @@ agent.on("weather.set.settings", function(data) {
 
     if (displayOn) {
         matrix.init(bright, angle);
-        matrix.setInverse(inverse);
+        matrix.setInverseVideo(inverse);
     } else {
         matrix.clearDisplay();
     }
@@ -391,7 +391,7 @@ agent.on("weather.set.settings", function(data) {
 
 agent.on("weather.set.video", function(state) {
     if (inverse != state) {
-        matrix.setInverse(state);
+        matrix.setInverseVideo(state);
         inverse = state;
     }
 });

@@ -416,7 +416,7 @@ api.post("/settings", function(context) {
             local i = data.video;
             if (debug) server.log("LED set to " + (i ? "black on green" : "green on black"));
             device.send("weather.set.video", i);
-            setting.inverse = i;
+            settings.inverse = i;
         }
     } catch (err) {
         server.error(err);
