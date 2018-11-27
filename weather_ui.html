@@ -31,7 +31,7 @@
         p {color: white; font-family: Abel, sans-serif; font-size: 18px;}
         p.error-message {color:#ffcc00; font-size: 16px;}
         p.subhead {color:#ffcc00; font-size: 22px; line-height: 24px; vertical-align: middle;}
-        p.postsubhead {margin-top: 15px;}
+        p.postsubhead {margin-top: 15px; font-size: 22px;}
         p.colophon {font-size: 14px; text-align: center;}
         h2 {color: #ffcc00; font-family: Audiowide, sans-serif; font-weight:bold; font-size: 36px;}
         h4 {color: white; font-family: Abel, sans-serif; font-size: 22px;}
@@ -86,17 +86,17 @@
                         </div>
                         <p><small>&nbsp;</small></p>
                         <div class='row' style='font-family:Abel,sans-serif'>
-                            <div class='col-6 update-button' align='right'>
+                            <div class='col-6 update-button' align='center'>
                                 <button class='btn btn-warning' type='submit' id='updater'>Update Monitor</button>
                             </div>
-                            <div class='col-6 reboot-button' align='left'>
-                                <button class='btn btn-warning' type='submit' id='rebooter'>Restart Monitor</button>
+                            <div class='col-6 power-button' align='center'>
+                                <button class='btn btn-warning' type='submit' id='powerer'>Turn Display Off</button>
                             </div>
                         </div>
                         <p><small>&nbsp;</small></p>
                         <div class='row' style='font-family:Abel,sans-serif'>
-                            <div class='col power-button' align='center'>
-                                <button class='btn btn-warning' type='submit' id='powerer'>Turn Display Off</button>
+                            <div class='col reboot-button' align='center'>
+                                <button class='btn btn-warning' type='submit' id='rebooter'>Restart Monitor</button>
                             </div>
                         </div>
                     </div>
@@ -119,19 +119,23 @@
                         </div>
                         <hr />
                         <div align='center'>
-                            <p>Brightness</p>
+                            <p class='postsubhead'>Display Brightness</p>
                             <input class='slider' type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
                             <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
-                            <p class='brightness-status' align='right'>Brightness: <span></span></p>
+                            <p class='brightness-status ' align='right'>Brightness: <span></span></p>
                         </div>
                         <hr />
                         <div align='center'>
-                            <p>Forecast Display</p>
+                            <p class='postsubhead'>Display Mode</p>
+                            <div style='color:white;font-family:Abel,sans-serif'>
+                                <input type='checkbox' name='inverse' id='inverse' value='inverse'> Inverse video mode
+                            </div>
+                        </div>
+                        <hr />
+                        <div align='center'>
+                            <p class='postsubhead'>Forecast Display</p>
                             <div class='repeat-checkbox' style='color:white;font-family:Abel,sans-serif'>
                                 <input type='checkbox' name='repeat' id='repeat' value='repeat'> Regularly reshow current forecast
-                            </div>
-                            <div class='repeat-checkbox' style='color:white;font-family:Abel,sans-serif'>
-                                <input type='checkbox' name='inverse' id='inverse' value='inverse'> Inverse video mode
                             </div>
                             <p style='font-size: 12px;'>&nbsp;<br />By default, the hour-ahead forecast updates every 15 minutes, and the monitor’s display updates
                             at that time. Check the box above to periodically re-display the forecast temperature reading between updates, and select how often
@@ -145,9 +149,10 @@
                                 <li>5 Minutes</li>
                                 </ul></p>
                             </div>
+                            <br />
                         </div>
                         <div class='advancedsettings' style='background-color:#a30000'>
-                            <p class='showhide text-center'>Show Advanced Settings</p>
+                            <p class='subhead showhide text-center'>Show Advanced Settings</p>
                             <div class='advanced' align='center'>
                                 <div class='debug-checkbox' style='color:white;font-family:Abel,sans-serif'>
                                     <input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode
