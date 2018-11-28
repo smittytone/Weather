@@ -305,7 +305,7 @@ agent.on("weather.set.debug", function(value) {
     // The user has told the device to enable or disable debugging messages
     seriallog.log("Debugging turned " + (value ? "on" : "off"));
     debug = value;
-    matrix.setDebug(debug);
+    matrix.setDebug(debug, false);
     locator.setDebug(debug);
 });
 
@@ -373,7 +373,6 @@ agent.on("weather.set.settings", function(data) {
     bright = data.bright;
     angle = data.angle;
     debug = data.debug;
-    locator.setDebug(debug);
     displayRepeat = data.repeat;
     displayPeriod = data.period * 60;
     inverse = data.inverse;
@@ -386,7 +385,7 @@ agent.on("weather.set.settings", function(data) {
     }
 
     // Set class debugging level
-    matrix.setDebug(debug);
+    matrix.setDebug(debug, false);
     locator.setDebug(debug);
 
     if (debug) seriallog.log("Received device settings from agent");

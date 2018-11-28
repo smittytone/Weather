@@ -287,6 +287,7 @@ device.on("weather.get.location", locationLookup);
 //device.on("weather.get.forecast", sendForecast);
 device.on("weather.get.settings", function(dummy) {
     device.send("weather.set.settings", settings);
+    if (debug) server.log(http.jsonencode(settings, {"compact":true}));
 });
 
 // Set up the API that the agent will server
