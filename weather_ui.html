@@ -208,12 +208,14 @@
         $('#debug').click(setDebug);
         $('#repeat').click(setRepeat);
         $('#inverse').click(setInverse);
-
+        
+        // Set the slider action
         var slider = document.getElementById('brightness');
         $('.brightness-status span').text(slider.value);
         slider.addEventListener('mouseup', updateSlider);
         slider.addEventListener('touchend', updateSlider);
-
+        
+        // Set the 'Show Advanced' box to show/hide the settings at a clicl
         $('.showhide').click(function(){
             $('.advanced').toggle();
             var isVis = $('.advanced').is(':visible');
@@ -221,28 +223,30 @@
         });
 
         // Functions
+        // Set the brightness when the slider is moved
         function updateSlider() {
             $('.brightness-status span').text($('#brightness').val());
             setBright();
         }
-
+        
+        // Update the UI from incoming data sent by the agent 
         function updateReadout(data) {
             if (data.error) {
                 $('.error-message span').text(data.error);
             } else {
+                $('.error-message span').text('Forecast updates automatically every two minutes');
                 $('.temp-status span').text(data.temp);
                 $('.outlook-status span').text(data.cast);
                 $('.location-status span').text(data.location.place + ' (' + data.location.long + ', ' + data.location.lat + ')');
-                $('.error-message span').text('Forecast updates automatically every two minutes');
-
+                $('.brightness-status span').text(data.bright);
+                $('#brightness').val(data.bright);
+                
                 $('[name=angle]').each(function(i, v) {
                     if (data.angle == $(this).val()) {
                         $(this).prop('checked', true);
                     }
                 });
 
-                $('#brightness').val(data.bright);
-                $('.brightness-status span').text(data.bright);
                 document.getElementById('debug').checked = data.debug;
                 document.getElementById('repeat').checked = data.repeat;
                 document.getElementById('inverse').checked = data.inverse;
@@ -253,14 +257,14 @@
 
                 if (data.power !== isOn) {
                     $('.power-button button').text(data.power ? 'Turn Display Off' : 'Turn Display On');
+                    isOn = data.power;
                 }
-                
-                isOn = data.power;
             }
-
+            
+            // Auto-update the UI every 30 seconds
             setTimeout(function() {
                 getState(updateReadout);
-            }, 60000);
+            }, 30000);
         }
 
         function getState(callback) {
@@ -278,57 +282,46 @@
 
         function doUpdate() {
             // Trigger a forecast update
-            update({'action' : 'update'});
+            doAction({'action':'update'});
         }
 
         function doReboot() {
             // Trigger a device restart
-            update({'action' : 'reboot'});
+            doAction({'action':'reboot'});
         }
 
         function doReset() {
             // Trigger a device reset
-            update({'action' : 'reset'});
+            doAction({'action':'reset'});
         }
 
         function setPower() {
             // Trigger the screen to turn off or on
             isOn = !isOn;
             $('.power-button button').text(isOn ? 'Turn Display Off' : 'Turn Display On');
-            set({ 'power' : isOn });
+            set({'power':isOn});
         }
 
         function setAngle() {
             // Set the device screen angle
-            var s;
             var r = document.getElementsByName('angle');
             for (var i = 0, length = r.length ; i < length ; i++) {
                 if (r[i].checked) {
-                    s = i;
+                    // Set the correct angle based on the button checked
+                    set({'angle':i * 90});
                     break;
                 }
             }
-
-            // Set the correct angle based on the button checked
-            if (s == 1) {
-                s = 90;
-            } else if (s == 2) {
-                s = 180;
-            } else if (s == 3) {
-                s = 270;
-            }
-            
-            set({'angle' : s});
         }
 
         function setBright() {
             // Set the device screen brightness
-            set({'bright' : $('#brightness').val()});
+            set({'bright':$('#brightness').val()});
         }
 
         function setDebug() {
             // Tell the device to enter or leave debug mode
-            send({'debug' : document.getElementById('debug').checked},'/debug', null);
+            send({'debug':document.getElementById('debug').checked},'/debug', null);
         }
 
         function setRepeat() {
@@ -342,7 +335,7 @@
                     setPeriod();
                 }
             }
-            set({'repeat' : isChecked});
+            set({'repeat':isChecked});
         }
 
         function setPeriod() {
@@ -355,21 +348,21 @@
             } else if (v == '5 Minutes') {
                 p = 5;
             }
-            set({'period' : p.toString()});
+            set({'period':p.toString()});
         }
         
         function setInverse() {
             // Tell the device to enter or leave inverse video mode
-            set({ 'video' : document.getElementById('inverse').checked });
+            set({ 'video':document.getElementById('inverse').checked });
+        }
+
+        function doAction(data) {
+            send(data, '/update', function(response){getState(updateReadout);});
         }
 
         function set(data) {
             // Send the data to the agent at /settings
             send(data,'/settings', null);
-        }
-
-        function update(data) {
-            send(data, '/update', function(response){getState(updateReadout);});
         }
 
         function send(data, path, response) {
@@ -386,26 +379,26 @@
             $.fn.styleddropdown = function() {
                 return this.each(function() {
                     var obj = $(this)
-                    obj.find('.rfield').click(function() { //onclick event, 'list' fadein
-                    obj.find('.list').fadeIn(400);
-                    
-                    $(document).keyup(function(event) { // keypress event, fadeout on 'escape'
-                        if (event.keyCode == 27) {
-                            obj.find('.list').fadeOut(400);
-                        }
-                    });
-                    
-                    obj.find('.list').hover(function(){ },
-                        function(){
-                            $(this).fadeOut(400);
+                    obj.find('.rfield').click(function() {
+                        // onclick event: fadein 'list'
+                        obj.find('.list').fadeIn(400);
+                        
+                        $(document).keyup(function(event) { 
+                            // keypress event: fadeout on 'escape'
+                            if (event.keyCode == 27) { obj.find('.list').fadeOut(400); }
                         });
+                        
+                        obj.find('.list').hover(
+                            function(){},
+                            function(){ $(this).fadeOut(400); }
+                        );
                     });
                     
-                    obj.find('.list li').click(function() { // onclick event, change field value with selected 'list' item and fadeout 'list'
+                    obj.find('.list li').click(function() { 
+                        // onclick event: change field value with selected 'list' item and fadeout 'list'
                         obj.find('.rfield')
                             .val($(this).html())
-                            .css({ 'background':'#a3000',
-                                'color':'#fff' });
+                            .css({ 'background':'#a3000', 'color':'#fff' });
                         setPeriod();
                         obj.find('.list').fadeOut(400);
                     });
@@ -414,4 +407,4 @@
         })(jQuery);
     </script>
 </body>
-</html>§§
+</html>
