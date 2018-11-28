@@ -232,7 +232,7 @@ function reset() {
     server.save({});
     settings = {};
     settings.angle <- 0;
-    settings.bright <- 15;
+    settings.bright <- 5;
     settings.debug <- false;
     settings.power <- true;
     settings.repeat <- false;
