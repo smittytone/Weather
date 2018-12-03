@@ -168,7 +168,7 @@ function displayWeather(data) {
         imp.sleep(0.5);
         
         // Display the weather icon
-        matrix.displayIcon(icon);
+        matrix.displayCharacter(icon);
 
         // Set up a timer for the display repeat, if refresh display mode is enabled
         if (savedData != null && displayRepeat) {
@@ -230,7 +230,7 @@ function discHandler(event) {
             if (savedIcon != null && displayOn) {
                 // 'savedIcon' will be null at first boot
                 imp.sleep(0.5);
-                matrix.displayIcon(savedIcon);
+                matrix.displayCharacter(savedIcon);
             }
         } else if (event.type == "connecting") {
             // Notify of disconnection...
@@ -271,9 +271,39 @@ matrix.init(INITIAL_BRIGHT, INITIAL_ANGLE);
 
 // Splash screen animation
 intro();
-outro();
 
-// Set up weather icons
+// Set up weather icons using user-definable characters
+matrix.defineCharacter(0, "\x89\x42\x18\xBC\x3D\x18\x42\x91");
+matrix.defineCharacter(1, "\x8C\x5E\x1E\x5F\x3F\x9F\x5E\x0C");
+matrix.defineCharacter(2, "\x8C\x52\x12\x51\x31\x91\x52\x0C");
+matrix.defineCharacter(3, "\x14\x49\x2A\x1C\x1C\x2A\x49\x14");
+matrix.defineCharacter(4, "\x4C\xBE\x5E\xBF\x5F\xBF\x5E\xAC");
+matrix.defineCharacter(5, "\x14\x14\x14\x14\x14\x55\x55\x22");
+matrix.defineCharacter(6, "\x55\xAA\x55\xAA\x55\xAA\x55\xAA");
+matrix.defineCharacter(7, "\x0C\x1E\x1E\x1F\x1F\x1F\x1E\x0C");
+matrix.defineCharacter(8, "\x0C\x12\x12\x11\x11\x11\x12\x0C");
+matrix.defineCharacter(9, "\x00\x00\x00\xF0\x1C\x07\x00\x00");
+matrix.defineCharacter(10, "\x00\x02\x36\x7D\xDD\x8D\x06\x02");
+matrix.defineCharacter(11, "\x3C\x42\x81\xC3\xFF\xFF\x7E\x3C");
+matrix.defineCharacter(12, "\x00\x00\x02\xB9\x09\x06\x00\x00");
+
+// Set up a table to map incoming weather condition names
+// (eg. "clearday") to user-definable character Ascii values
+iconset.clearday <-     0;
+iconset.rain <-         1;
+iconset.lightrain <-    2;
+iconset.snow <-         3;
+iconset.sleet <-        4;
+iconset.wind <-         5;
+iconset.fog <-          6;
+iconset.cloudy <-       7;
+iconset.partlycloudy <- 8;
+iconset.thunderstorm <- 9;
+iconset.tornado <-      10;
+iconset.clearnight <-   11;;
+iconset.none <-         12;
+
+/*
 iconset.clearday <-     "\x89\x42\x18\xBC\x3D\x18\x42\x91";
 iconset.rain <-         "\x8C\x5E\x1E\x5F\x3F\x9F\x5E\x0C";
 iconset.lightrain <-    "\x8C\x52\x12\x51\x31\x91\x52\x0C";
@@ -287,6 +317,7 @@ iconset.thunderstorm <- "\x00\x00\x00\xF0\x1C\x07\x00\x00";
 iconset.tornado <-      "\x00\x02\x36\x7D\xDD\x8D\x06\x02";
 iconset.clearnight <-   "\x3C\x42\x81\xC3\xFF\xFF\x7E\x3C";  // old: "\x00\x00\x00\x81\xE7\x7E\x3C\x18";
 iconset.none <-         "\x00\x00\x02\xB9\x09\x06\x00\x00";
+*/
 
 // Set up agent interaction
 agent.on("weather.show.forecast", function(data) {
@@ -412,3 +443,6 @@ if (server.isconnected()) {
     // Link down - try to connect to the server...
     disconnectionManager.connect();
 }
+
+// Splash screen animation
+outro();
