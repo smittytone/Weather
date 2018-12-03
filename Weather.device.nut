@@ -32,18 +32,18 @@ local refreshTimer = null;
 local iconset = {};
 local angle = INITIAL_ANGLE;
 local bright = INITIAL_BRIGHT;
+local displayPeriod = 300;
 local displayOn = true;
 local displayRepeat = false;
-local displayPeriod = 300;
 local debug = false;
 local connecting = false;
 local inverse = false;
 
 
-// DEVICE FUNCTIONS
+// FUNCTIONS
+// Display functions
 function intro() {
-    // This function sets the matrix pixels from the outside in, 
-    // in a spiral pattern
+    // This function sets the matrix pixels from the outside in, in a spiral pattern
     local x = 7, y = 0;
     local dx = 0, dy = 1;
     local mx = 6, my = 7;
@@ -78,8 +78,7 @@ function intro() {
 }
 
 function outro() {
-    // This function clears the matrix pixels from the inside out, 
-    // in a spiral pattern
+    // This function clears the matrix pixels from the inside out, in a spiral pattern
     local x = 4, y = 3;
     local dx = -1, dy = 0;
     local mx = 5, my = 4;
@@ -143,6 +142,8 @@ function displayWeather(data) {
     // Prepare an icon to display
     local icon = null;
 
+    // Use a 'try... catch' in case the table 'iconset' has no key
+    // that matches the string 'data.icon' (choose 'none' if that's the case)
     try {
         icon = iconset[data.icon];
     } catch (error) {
@@ -197,6 +198,8 @@ function refreshDisplay(data) {
     displayWeather(data);
 }
 
+
+// UTILITY FUNCTIONS
 // Function to clear any display refresh timer in flight
 function clearTimer() {
     if  (refreshTimer != null) {
@@ -205,7 +208,8 @@ function clearTimer() {
     }
 }
 
-// Disconnection Manager reporting handler function
+// CONNECTION/RECONNECTION FUNCTIONS
+// This is the Disconnection Manager report handler
 function discHandler(event) {
     if ("message" in event) seriallog.log("Disconnection Manager says: " + event.message);
 
@@ -241,12 +245,13 @@ function discHandler(event) {
 }
 
 
-// START PROGRAM
+// START OF PROGRAM
 
-// Set up locator
+// Set up the geographical locator. The agent will use this when 
+// the device code sends a "weather.get.settings" message to it
 locator = Location();
 
-// Set up the disconnection handler function
+// Set up the disconnection handler function and begin monitoring
 disconnectionManager.eventCallback = discHandler;
 disconnectionManager.reconnectDelay = RECONNECT_DELAY;
 disconnectionManager.reconnectTimeout = RECONNECT_TIMEOUT;
@@ -264,12 +269,12 @@ server.onshutdown(function(reason) {
     }
 });
 
-// Set up hardware
+// Set up the I2C LED matrix display hardware
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 matrix = HT16K33Matrix(hardware.i2c89, 0x70);
 matrix.init(INITIAL_BRIGHT, INITIAL_ANGLE);
 
-// Splash screen animation
+// Splash screen animation part one
 intro();
 
 // Set up weather icons using user-definable characters
@@ -319,7 +324,8 @@ iconset.clearnight <-   "\x3C\x42\x81\xC3\xFF\xFF\x7E\x3C";  // old: "\x00\x00\x
 iconset.none <-         "\x00\x00\x02\xB9\x09\x06\x00\x00";
 */
 
-// Set up agent interaction
+
+// Set up agent interaction handlers
 agent.on("weather.show.forecast", function(data) {
     // The agent has sent updated forecast data the for the device to display
     if (debug) seriallog.log("Forecast data received from agent");
@@ -398,6 +404,13 @@ agent.on("weather.set.reboot", function(dummy) {
     }
 });
 
+agent.on("weather.set.video", function(state) {
+    if (inverse != state) {
+        matrix.setInverseVideo(state);
+        inverse = state;
+    }
+});
+
 agent.on("weather.set.settings", function(data) {
     // The agent has relayed the device settings
     displayOn = data.power;
@@ -425,12 +438,6 @@ agent.on("weather.set.settings", function(data) {
     agent.send("weather.get.location", true);
 });
 
-agent.on("weather.set.video", function(state) {
-    if (inverse != state) {
-        matrix.setInverseVideo(state);
-        inverse = state;
-    }
-});
 
 // If the device is connected, request its settings from the agent.
 // This will in turn get the device's location, causing the agent to 
@@ -444,5 +451,5 @@ if (server.isconnected()) {
     disconnectionManager.connect();
 }
 
-// Splash screen animation
+// Splash screen animation part two
 outro();
