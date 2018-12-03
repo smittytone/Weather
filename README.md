@@ -57,20 +57,18 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 - 3.10.1 &mdash; *1 November 2018*
     - Update dependencies
 - 3.10.0 &mdash; *27 September 2018*
-    - Add control to set the repeat period
+    - Add control to set the forecast display repeat period
     - Stop DarkSky requests busting the limit
-    - Minor code changes
 - 3.9.0 &mdash; *30 July 2018*
     - Add [DisconnectionManager 2.0.0](https://github.com/smittytone/generic/blob/master/disconnect.nut)
-    - Add periodic repeat of the current forecast on the display, enabled or disbabled via the web UI
-    - Add control to turn off (eg. at night) or turn on the display 
+    - Add a periodic repeat of the current forecast on the display, enabled or disabled via the web UI
 - 3.8.0 &mdash; *8 June 2018*
     - Update Web UI to be based on [Bootstrap 4.1.1](https://getbootstrap.com/)
     - Separate out Web UI into own file for clarity
     - Add support for [serial logging](https://github.com/smittytone/generic/blob/master/seriallog.nut)
     - Update dependencies, including [JQuery 3.3.1](https://jquery.com)
     - Prevent Ajax XHR caching
-    - Add preliminary support for polite deployment
+    - Support polite deployment
 - 3.7.0
     - Update dependencies
     - Assorted code tweaks, minor bug fixes made
@@ -78,9 +76,6 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
     - Add support for [Location class 1.3.0](https://github.com/smittytone/Location)
     - Add icon for light rain (drizzle)
     - Nominate generic fonts for web UI in case web fonts can't be loaded
-    - Adjust web UI
-    - Add release notes to Read Me
-    - Assorted typos fixed and tweaks made
 
 ## Licence ##
 
