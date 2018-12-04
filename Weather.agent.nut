@@ -23,6 +23,7 @@ const HTML_STRING = @"
 #import "weather_ui.html"
 ";
 
+
 // GLOBAL VARIABlES
 local request = null;
 local weather = null;
@@ -44,6 +45,7 @@ local darkSkyCount = 0;
 local deviceSyncFlag = false;
 local debug = false;
 local clearSettings = false;
+
 
 // FORECAST FUNCTIONS
 function sendForecast(dummy) {
@@ -143,6 +145,7 @@ function forecastCallback(err, data) {
     });
 }
 
+
 // LOCATION FUNCTIONS
 function locationLookup(dummy) {
     // Now we've received a message from the device, if the agent restart timer is
@@ -226,6 +229,7 @@ function parsePlaceData(data) {
     return "Unknown";
 }
 
+
 // SETTINGS FUNCTIONS
 function reset() {
     if (debug) server.log("Clearing settings to default values");
@@ -241,6 +245,7 @@ function reset() {
     server.save(settings);
 }
 
+
 // START PROGRAM
 
 // If you are NOT using Squinter, uncomment the following lines and add your API keys...
@@ -249,7 +254,6 @@ function reset() {
 // mailer = IFTTT("YOUR_APPLET_ID");
 // agent = "YOUR ENV TAIL AGENT URL";
 // const APP_CODE = "Weather";
-
 #import "~/Dropbox/Programming/Imp/Codes/weather.nut"
 
 // Specify UK units for all forecasts, ie. temperatures in Celsius
@@ -293,7 +297,7 @@ device.on("weather.get.settings", function(dummy) {
 // Set up the API that the agent will server
 api = Rocky();
 
-// GET at / returns the UI
+// GET at / returns the UI via a redirect to 'index.html'
 api.get("/", function(context) {
     context.setHeader("Location", http.agenturl() + "/index.html");
     context.send(301);
@@ -309,6 +313,7 @@ api.get("/index.html", function(context) {
 // If there is an error, the JSON will contain the key 'error'
 api.get("/current", function(context) {
     local data = {};
+    
     if (savedData != null) {
         data = savedData;
     } else {
@@ -327,8 +332,8 @@ api.get("/current", function(context) {
     data.repeat <- settings.repeat;
     data.period <- settings.period;
     data.inverse <- settings.inverse;
-    data = http.jsonencode(data);
-    context.send(200, data);
+    
+    context.send(200, http.jsonencode(data));
 });
 
 // POST at /update triggers an action, chosen by the JSON
@@ -343,24 +348,27 @@ api.post("/update", function(context) {
             if (data.action == "update") {
                 sendForecast(true);
             } else if (data.action == "reboot") {
-                if (debug) server.log("Restarting Device");
+                if (debug) server.log("Restarting device via UI");
                 reset();
                 device.send("weather.set.reboot", true);
             } else if (data.action == "power") {
-                if (debug) server.log("Switching display power");
+                if (debug) server.log("Switching display power via UI");
                 settings.power = !settings.power;
                 device.send("weather.set.power", settings.power);
             } else if (data.action == "reset") {
                 // Clear and reset the settings, then
                 // reboot the device to apply them
                 reset();
-                if (debug) server.log("Restarting Device");
+                if (debug) server.log("Restarting device via UI");
                 device.send("weather.set.reboot", true);
             }
+        } else {
+            context.send(400, "Bad command posted by UI to /update");
+            return;
         }
     } catch (err) {
         server.error(err);
-        context.send(400, "Bad data posted");
+        context.send(400, "Bad data posted by UI to /update");
         return;
     }
 
@@ -380,28 +388,28 @@ api.post("/settings", function(context) {
         
         if ("angle" in data) {
             local a = data.angle.tointeger();
-            if (debug) server.log("Display angle changed to " + a);
+            if (debug) server.log("Display angle changed by UI to " + a);
             device.send("weather.set.angle", a);
             settings.angle = a;
         }
 
         if ("bright" in data) {
             local b = data.bright.tointeger();
-            if (debug) server.log("Display brightness changed to " + b);
+            if (debug) server.log("Display brightness changed by UI to " + b);
             device.send("weather.set.bright", b);
             settings.bright = b;
         }
 
         if ("power" in data) {
             local p = data.power;
-            if (debug) server.log("Display turned " + (p ? "on" : "off"));
+            if (debug) server.log("Display turned " + (p ? "on" : "off") + " by UI");
             device.send("weather.set.power", p);
             settings.power = p;
         }
 
         if ("repeat" in data) {
             local r = data.repeat;
-            if (debug) server.log("Repeat mode " + (r ? "en" : "dis") + "abled");
+            if (debug) server.log("Repeat mode " + (r ? "en" : "dis") + "abled by UI");
             device.send("weather.set.repeat", r);
             settings.repeat = r;
         }
@@ -415,19 +423,18 @@ api.post("/settings", function(context) {
 
         if ("video" in data) {
             local i = data.video;
-            if (debug) server.log("LED set to " + (i ? "black on green" : "green on black"));
+            if (debug) server.log("LED set to " + (i ? "black on green" : "green on black") + " by UI");
             device.send("weather.set.video", i);
             settings.inverse = i;
         }
     } catch (err) {
         server.error(err);
-        context.send(400, "Bad data posted");
+        context.send(400, "Bad data posted by UI to /settings");
         return;
     }
 
     context.send(200, "OK");
-    local r = server.save(settings);
-    if (r != 0) server.error("Could not save settings (code: " + r + ")");
+    if (server.save(settings) != 0) server.error("Could not save settings (code: " + r + ") at POST /settings");
 });
 
 // POST at /debug updates the passed setting(s)
@@ -438,20 +445,17 @@ api.post("/debug", function(context) {
         local data = http.jsondecode(context.req.rawbody);
         if ("debug" in data) {
             debug = data.debug;
-            if (debug) {
-                server.log("Debug enabled");
-            } else {
-                server.log("Debug disabled");
-            }
-
+            server.log("Debug " + (debug ? "enabled" : "disabled") + " by UI");
             device.send("weather.set.debug", debug);
             settings.debug = debug;
-            local r = server.save(settings);
-            if (r != 0) server.error("Could not save settings (code: " + r + ")");
+            if (server.save(settings) != 0) server.error("Could not save settings (code: " + r + ") at POST /debug");
+        } else {
+            context.send(400, "Bad command posted by UI to /debug");
+            return;
         }
     } catch (err) {
         server.error(err);
-        context.send(400, "Bad data posted");
+        context.send(400, "Bad data posted by UI to /debug");
         return;
     }
 

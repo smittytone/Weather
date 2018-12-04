@@ -148,7 +148,7 @@
                                 </ul></p>
                             </div>
                         </div>
-                        <div class='advancedsettings' style='background-color:#a30000'>
+                        <div class='advancedsettings' style='background-color:#a30000;height:32px'>
                             <p class='subhead showhide text-center'>Show Advanced Settings</p>
                             <div class='advanced' align='center'>
                                 <div class='debug-checkbox' style='color:white;font-family:Abel,sans-serif'>
@@ -212,11 +212,13 @@
         slider.addEventListener('mouseup', updateSlider);
         slider.addEventListener('touchend', updateSlider);
         
-        // Set the 'Show Advanced' box to show/hide the settings at a clicl
+        // Set the 'Show Advanced' box to show/hide the settings at a click
         $('.showhide').click(function(){
             $('.advanced').toggle();
             var isVis = $('.advanced').is(':visible');
             $('.showhide').text(isVis ? 'Hide Advanced Settings' : 'Show Advanced Settings');
+            var h = 32 + (isVis ? $('.advanced').height() : 0);
+            $('.advancedsettings').attr({'style':'background-color:#a30000;height:' + h.toString() + 'px'});
         });
 
         // Functions
