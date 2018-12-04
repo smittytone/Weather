@@ -326,7 +326,7 @@ api.get("/current", function(context) {
     loc.place <- myLocation;
     data.location <- loc;
     data.angle <- settings.angle.tostring();
-    data.bright <- settings.bright;
+    data.bright <- settings.bright + 1;     // Brightness in UI is 1-16
     data.debug <- settings.debug;
     data.power <- settings.power;
     data.repeat <- settings.repeat;

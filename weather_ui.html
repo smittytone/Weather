@@ -106,7 +106,7 @@
                         </div>
                         <div align='center'>
                             <p class='postsubhead'>Brightness</p>
-                            <input class='slider' type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
+                            <input class='slider' type='range' name='brightness' id='brightness' value='16' min='1' max='16'>
                             <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
                             <p class='brightness-status ' align='right'>Brightness: <span></span></p>
                         </div>
@@ -237,8 +237,8 @@
                 $('.temp-status span').text(data.temp);
                 $('.outlook-status span').text(data.cast);
                 $('.location-status span').text(data.location.place + ' (' + data.location.long + ', ' + data.location.lat + ')');
-                $('.brightness-status span').text(data.bright);
-                $('#brightness').val(data.bright);
+                $('.brightness-status span').text(data.bright + 1);
+                $('#brightness').val(data.bright + 1);
                 
                 $('[name=angle]').each(function(i, v) {
                     if (data.angle == $(this).val()) {
@@ -315,7 +315,8 @@
 
         function setBright() {
             // Set the device screen brightness
-            set({'bright':$('#brightness').val()});
+            // NOTE UI uses range 1-16; app used 0-15
+            set({'bright':$('#brightness').val() - 1});
         }
 
         function setDebug() {
