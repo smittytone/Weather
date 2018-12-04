@@ -93,12 +93,6 @@
                                 <button class='btn btn-warning' type='submit' id='powerer'>Turn Display Off</button>
                             </div>
                         </div>
-                        <p><small>&nbsp;</small></p>
-                        <div class='row' style='font-family:Abel,sans-serif'>
-                            <div class='col reboot-button' align='center'>
-                                <button class='btn btn-warning' type='submit' id='rebooter'>Restart Monitor</button>
-                            </div>
-                        </div>
                     </div>
                     <div class='col-2'>&nbsp;</div>
                 </div>
@@ -108,34 +102,38 @@
                     <div class='col-8'>
                         <p><small>&nbsp;</small></p>
                         <div style='background-color:#a30000;height:32px'>
-                            <p class='subhead text-center'>Settings</p>
+                            <p class='subhead text-center'>Display Settings</p>
                         </div>
-                        <div class='angle-radio' align='left'>
-                            <p class='text-center postsubhead'>Display Angle</p>
-                            <label class='radiobox'><input type='radio' name='angle' id='angle0' value='0' checked='checked'> 0&deg;<span class='checkmark'></span></label>
-                            <label class='radiobox'><input type='radio' name='angle' id='angle90' value='90'> 90&deg;<span class='checkmark'></span></label>
-                            <label class='radiobox'><input type='radio' name='angle' id='angle180' value='180'> 180&deg;<span class='checkmark'></span></label>
-                            <label class='radiobox'><input type='radio' name='angle' id='angle270' value='270'> 270&deg;<span class='checkmark'></span></label>
-                        </div>
-                        <hr />
                         <div align='center'>
-                            <p class='postsubhead'>Display Brightness</p>
+                            <p class='postsubhead'>Brightness</p>
                             <input class='slider' type='range' name='brightness' id='brightness' value='15' min='1' max='15'>
                             <table width='100%%'><tr><td width='50%%' align='left'><small>Low</small></td><td width='50%%' align='right'><small>High</small></td></tr></table>
                             <p class='brightness-status ' align='right'>Brightness: <span></span></p>
                         </div>
                         <hr />
-                        <div align='center'>
-                            <p class='postsubhead'>Display Mode</p>
-                            <div style='color:white;font-family:Abel,sans-serif'>
-                                <input type='checkbox' name='inverse' id='inverse' value='inverse'> Inverse video mode
+                        <div class='row'>
+                            <div class='col-6' align='center'>
+                                <div class='angle-radio' align='left'>
+                                    <p class='text-center postsubhead'>Angle</p>
+                                    <label class='radiobox'><input type='radio' name='angle' id='angle0' value='0' checked='checked'> 0&deg;<span class='checkmark'></span></label>
+                                    <label class='radiobox'><input type='radio' name='angle' id='angle90' value='90'> 90&deg;<span class='checkmark'></span></label>
+                                    <label class='radiobox'><input type='radio' name='angle' id='angle180' value='180'> 180&deg;<span class='checkmark'></span></label>
+                                    <label class='radiobox'><input type='radio' name='angle' id='angle270' value='270'> 270&deg;<span class='checkmark'></span></label>
+                                </div>
                             </div>
+                            <div class='col-6' align='center'>
+                                <p class='postsubhead'>Mode</p>
+                                <div style='color:white;font-family:Abel,sans-serif'>
+                                    <input type='checkbox' name='inverse' id='inverse' value='inverse'> Black on Green
+                                </div>
+                                <p style='font-size: 12px;'>&nbsp;<br />By default, the display operates in green on black. Check the box above to reverse this.</p>
+                            </div> 
                         </div>
                         <hr />
                         <div align='center'>
-                            <p class='postsubhead'>Forecast Display</p>
+                            <p class='postsubhead'>Forecast Refresh</p>
                             <div class='repeat-checkbox' style='color:white;font-family:Abel,sans-serif'>
-                                <input type='checkbox' name='repeat' id='repeat' value='repeat'> Regularly reshow current forecast
+                                <input type='checkbox' name='repeat' id='repeat' value='repeat'> Regularly repeat current forecast
                             </div>
                             <p style='font-size: 12px;'>&nbsp;<br />By default, the hour-ahead forecast updates every 15 minutes, and the monitor’s display updates
                             at that time. Check the box above to periodically re-display the forecast temperature reading between updates, and select how often
@@ -149,7 +147,6 @@
                                 <li>5 Minutes</li>
                                 </ul></p>
                             </div>
-                            <br />
                         </div>
                         <div class='advancedsettings' style='background-color:#a30000'>
                             <p class='subhead showhide text-center'>Show Advanced Settings</p>
