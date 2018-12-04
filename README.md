@@ -53,6 +53,7 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 - 3.11.0 &mdash; *Unreleased*
     - Add inverse video option
+    - Remove **Restart** button (largely redundant now)
     - Apply weather icons as LED matrix user-definable characters
 - 3.10.1 &mdash; *1 November 2018*
     - Update dependencies
