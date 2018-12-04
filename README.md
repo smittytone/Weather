@@ -47,7 +47,7 @@ If you are using the macOS tool Squinter (download [here](https://smittytone.git
 
 The Weather Monitor has its own, web-based control UI, accessed at the agent URL.
 
-![Weather Station UI](images/grab01.png)
+<p><img src="images/grab01.png" alt="Weather Station UI" width="565" /></p>
 
 ## Release Notes ##
 
