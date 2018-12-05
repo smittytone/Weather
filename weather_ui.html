@@ -37,6 +37,7 @@
         h4 {color: white; font-family: Abel, sans-serif; font-size: 22px;}
         td {color: white; font-family: Abel, sans-serif;}
         hr {border-color: #ffcc00;}
+        .advanced {background-color: #a90000;}
         .uicontent {border: 2px solid #ffcc00;}
         .container {padding: 20px;}
         .btn-warning {width: 200px;}
@@ -218,7 +219,7 @@
             var isVis = $('.advanced').is(':visible');
             $('.showhide').text(isVis ? 'Hide Advanced Settings' : 'Show Advanced Settings');
             var h = 32 + (isVis ? $('.advanced').height() : 0);
-            $('.advancedsettings').attr({'style':'background-color:#a30000;height:' + h.toString() + 'px'});
+            $('.advancedsettings').attr({'style':'background-color:#a90000;height:' + h.toString() + 'px'});
         });
 
         // Functions

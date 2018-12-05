@@ -100,7 +100,7 @@ function forecastCallback(err, data) {
 
                 // Send the icon name to the device
                 sendData.icon <- item.icon;
-                sendData.temp <- item.apparentTemperature;
+                sendData.temp <- format("%.2f", item.apparentTemperature).tofloat();
                 if (debug) server.log("Sending data to device");
                 device.send("weather.show.forecast", sendData);
                 savedData = sendData;
@@ -326,7 +326,7 @@ api.get("/current", function(context) {
     loc.place <- myLocation;
     data.location <- loc;
     data.angle <- settings.angle.tostring();
-    data.bright <- settings.bright + 1;     // Brightness in UI is 1-16
+    data.bright <- settings.bright;     // Brightness in UI is 1-16
     data.debug <- settings.debug;
     data.power <- settings.power;
     data.repeat <- settings.repeat;
