@@ -1,5 +1,5 @@
 // Weather Monitor
-// Copyright 2016-18, Tony Smith
+// Copyright 2016-19, Tony Smith
 
 // IMPORTS
 // NOTE If you are not using a tool like Squinter or impt, please

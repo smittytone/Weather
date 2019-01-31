@@ -1,9 +1,9 @@
 // Weather Monitor
-// Copyright 2016-18, Tony Smith
+// Copyright 2016-19, Tony Smith
 
 // IMPORTS
 #require "DarkSky.class.nut:1.0.1"
-#require "Rocky.class.nut:2.0.1"
+#require "Rocky.class.nut:2.0.2"
 #require "IFTTT.class.nut:1.0.0"
 
 // NOTE If you are not using a tool like Squinter or impt, please

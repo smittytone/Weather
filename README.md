@@ -80,4 +80,4 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Licence ##
 
-The Weather design and software is copyright &copy; 2014-18 Tony Smith and made available under the [MIT Licence](./LICENSE).
+The Weather design and software is copyright &copy; 2014-19 Tony Smith and made available under the [MIT Licence](./LICENSE).
