@@ -1,4 +1,4 @@
-# Weather 3.11.0 #
+# Weather 3.11.1 #
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
@@ -51,6 +51,8 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 3.11.1 &mdash; *7 February 2019*
+    - Adjust temperature data type and display precision
 - 3.11.0 &mdash; *31 January 2019*
     - Add inverse video option
     - Remove **Restart** button (largely redundant now)

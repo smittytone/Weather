@@ -134,10 +134,10 @@ function displayWeather(data) {
     local ds = "    " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + "  ";
     
     // ...then add the forecast temperature...
-    ds = ds + format("Out: %.1f", data.temp.tofloat()) + "\x7F" + "c";
+    ds = ds + format("Out: %.1f", data.temp) + "\x7F" + "c";
     
     // ...and finally add the interior temperature, if we have it
-    if (localTemp != null) ds = ds + " In: " + localTemp + "\x7F" + "c";
+    if (localTemp != null) ds = ds + format(" In: %.1f", localTemp) + "\x7F" + "c";
     
     // Prepare an icon to display
     local icon = null;
@@ -184,7 +184,7 @@ function displayWeather(data) {
     if (debug) {
         local ls = "Forecast: " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + ". Temperature: ";
         ls = ls + format("Out: %.1f", data.temp.tofloat()) + "\xC2\xB0" + "c";
-        if (localTemp != null) ls = ls + " In: " + localTemp + "\xC2\xB0" + "c";
+        if (localTemp != null) ls = ls + format(" In: %.1f", localTemp) + "\xC2\xB0" + "c";
         seriallog.log(ls);
         seriallog.log("Current repeat settings: period is " + displayPeriod + "s, repeat is " + (displayRepeat ? "on" : "off"));
     }

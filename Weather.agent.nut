@@ -100,7 +100,7 @@ function forecastCallback(err, data) {
 
                 // Send the icon name to the device
                 sendData.icon <- item.icon;
-                sendData.temp <- format("%.2f", item.apparentTemperature).tofloat();
+                sendData.temp <- item.apparentTemperature;
                 if (debug) server.log("Sending data to device");
                 device.send("weather.show.forecast", sendData);
                 savedData = sendData;
@@ -124,7 +124,7 @@ function forecastCallback(err, data) {
                 try {
                     if (debug) server.log("Inside temperature data received from remote sensor");
                     local data = http.jsondecode(response.body);
-                    device.send("weather.set.local.temp", data.temp);
+                    device.send("weather.set.local.temp", data.temp.tofloat());
                 } catch (error) {
                     if (debug) server.error("Could not decode JSON from agent");
                 }
