@@ -52,7 +52,7 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 ## Release Notes ##
 
 - 3.11.2 &mdash; *12 February 2010*
-    - Improve Web UI CSS for small screen size
+    - Improve Web UI CSS for small screen sizes
     - Update dependencies (Bootstrap 4.3.0)
 - 3.11.1 &mdash; *7 February 2019*
     - Adjust temperature data type and display precision
