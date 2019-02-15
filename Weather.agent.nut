@@ -1,30 +1,24 @@
 // Weather Monitor
 // Copyright 2016-19, Tony Smith
 
-// IMPORTS
+// ********** IMPORTS **********
 #require "DarkSky.class.nut:1.0.1"
 #require "Rocky.class.nut:2.0.2"
 #require "IFTTT.class.nut:1.0.0"
 
-// NOTE If you are not using a tool like Squinter or impt, please
-//      paste the contents of the file named below into
-//      the agent code at this point, and then delete or comment out
-//      the following #import statement
+// If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
+// with the contents of the named file(s):
 #import "../Location/location.class.nut"            // Source file in https://github.com/smittytone/Location
-
-
-// CONSTANTS
-const FORECAST_REFRESH_INTERVAL = 900;  // 15 minutes
-const AGENT_START_TIME = 120;
-// NOTE If you are not using a tool like Squinter or impt, please
-//      replace the #import statement below with the contents of 
-//      the named file (weather_ui.html)
 const HTML_STRING = @"
 #import "weather_ui.html"
-";
+";                                                  // Source file in https://github.com/smittytone/Weather
+
+// ********** CONSTANTS **********
+const FORECAST_REFRESH_INTERVAL = 900;  // 15 minutes
+const AGENT_START_TIME = 120;
 
 
-// GLOBAL VARIABlES
+// ********** GLOBAL VARIABlES **********
 local request = null;
 local weather = null;
 local locator = null;
@@ -43,22 +37,20 @@ local locationTime = -1;
 local darkSkyCount = 0;
 
 local deviceSyncFlag = false;
-local debug = false;
-local clearSettings = false;
 
 
-// FORECAST FUNCTIONS
+// ********** FORECAST FUNCTIONS **********
 function sendForecast(dummy) {
     // Request a weather forecast, but only if there are less than 1000 previous requests today
     // NOTE the count is maintined by DarkSky; we reload it every time
     if (darkSkyCount < 990) {
-        if (debug) server.log("Requesting weather forecast data from Dark Sky");
+        if (settings.debug) server.log("Requesting weather forecast data from Dark Sky");
         weather.forecastRequest(myLongitude, myLatitude, forecastCallback.bindenv(this));
     }
 }
 
 function forecastCallback(err, data) {
-    if (debug) {
+    if (settings.debug) {
         if (err) server.error(err);
         if (data) server.log("Weather forecast data received from Dark Sky");
     }
@@ -101,7 +93,7 @@ function forecastCallback(err, data) {
                 // Send the icon name to the device
                 sendData.icon <- item.icon;
                 sendData.temp <- item.apparentTemperature;
-                if (debug) server.log("Sending data to device");
+                if (settings.debug) server.log("Sending data to device");
                 device.send("weather.show.forecast", sendData);
                 savedData = sendData;
             }
@@ -110,7 +102,7 @@ function forecastCallback(err, data) {
         if ("callCount" in data) {
             // Send an event to IFTTT to trigger a warning email, if necessary
             if (data.callCount > 950) mailer.sendEvent("darksky_warning", [data.callCount, "out of", 1000]);
-            if (debug) server.log("Current Dark Sky API call tally: " + data.callCount + "/1000");
+            if (settings.debug) server.log("Current Dark Sky API call tally: " + data.callCount + "/1000");
             darkSkyCount = data.callCount;
         }
     }
@@ -122,18 +114,18 @@ function forecastCallback(err, data) {
         if (response.statuscode == 200) {
             if ("body" in response) {
                 try {
-                    if (debug) server.log("Inside temperature data received from remote sensor");
+                    if (settings.debug) server.log("Inside temperature data received from remote sensor");
                     local data = http.jsondecode(response.body);
                     device.send("weather.set.local.temp", data.temp.tofloat());
                 } catch (error) {
-                    if (debug) server.error("Could not decode JSON from agent");
+                    if (settings.debug) server.error("Could not decode JSON from agent");
                 }
             }
         } else {
             if (response.statuscode == 404) {
-                if (debug) server.log("Remote sensor not available");
+                if (settings.debug) server.log("Remote sensor not available");
             } else {
-                if (debug) server.error("Response from sensor agent: " + response.statuscode + " - " + response.body);
+                if (settings.debug) server.error("Response from sensor agent: " + response.statuscode + " - " + response.body);
             }
         }
     });
@@ -146,7 +138,7 @@ function forecastCallback(err, data) {
 }
 
 
-// LOCATION FUNCTIONS
+// ********** LOCATION FUNCTIONS **********
 function locationLookup(dummy) {
     // Now we've received a message from the device, if the agent restart timer is
     // running, kill it
@@ -175,13 +167,13 @@ function locationLookup(dummy) {
             myLocation = parsePlaceData(locale.placeData);
             locationTime = time();
 
-            if (debug) {
+            if (settings.debug) {
                 server.log("Co-ordinates: " + myLongitude + ", " + myLatitude);
                 server.log("Location    : " + myLocation);
             }
 
             local tz = locator.getTimezone();
-            if (!("error" in tz) && debug) server.log("Timezone    : " + tz.gmtOffsetStr);
+            if (!("error" in tz) && settings.debug) server.log("Timezone    : " + tz.gmtOffsetStr);
 
             sendForecast(true);
         } else {
@@ -230,10 +222,9 @@ function parsePlaceData(data) {
 }
 
 
-// SETTINGS FUNCTIONS
-function reset() {
-    if (debug) server.log("Clearing settings to default values");
-    server.save({});
+// ********** SETTINGS FUNCTIONS **********
+function initialiseSettings() {
+    // Reset the application settings and re-save them
     settings = {};
     settings.angle <- 0;
     settings.bright <- 5;
@@ -243,14 +234,29 @@ function reset() {
     settings.period <- 15;
     settings.inverse <- false;
     server.save(settings);
+    if (settings.debug) server.log("Clearing settings to default values");
+    
 }
 
 
-// START PROGRAM
+// ********** LOGGING FUNCTIONS **********
+function debugAPI(context, next) {
+    // Display a UI API activity report
+    if (settings.debug) {
+        server.log("API received a request at " + time() + ": " + context.req.method.toupper() + " @ " + context.req.path.tolower());
+        if (context.req.rawbody.len() > 0) server.log("Request body: " + context.req.rawbody.tolower());
+    }
+    
+    // Invoke the next middleware
+    next();
+}
+
+
+// ********** RUNTIME START **********
 
 // If you are NOT using Squinter, uncomment the following lines and add your API keys...
 // weather = DarkSky("YOUR_API_KEY");
-// locator = Location("YOUR_GOOGLE_API_KEY(s)", debug);
+// locator = Location("YOUR_GOOGLE_API_KEY(s)", settings.debug);
 // mailer = IFTTT("YOUR_APPLET_ID");
 // agent = "YOUR ENV TAIL AGENT URL";
 // const APP_CODE = "Weather";
@@ -264,26 +270,38 @@ local loadedSettings = server.load();
 
 if (loadedSettings.len() == 0) {
     // No saved data, so save defaults
-    reset();
+    initialiseSettings();
 } else {
     // Clear settings if required (but only if we HAVE saved settings)
-    if (clearSettings) {
-        reset();
-    } else {
-        settings = loadedSettings;
-        
-        // Handle later additions to the settings
-        if ("debug" in settings) {
-            debug = settings.debug;
-        } else {
-            settings.debug <- debug;
-        }
+    settings = loadedSettings;
+    local doSave = false;
 
-        if (!("period" in settings)) settings.period <- 15;
-        if (!("power" in settings)) settings.power <- true;
-        if (!("repeat" in settings)) settings.repeat <- false;
-        if (!("inverse" in settings)) settings.inverse <- false;
+    // Handle later additions to the settings
+    if (!("debug" in settings)) {
+        settings.debug <- false;
+        doSave = true;
     }
+    if (!("period" in settings)) {
+        settings.period <- 15;
+        doSave = true;
+    }
+
+    if (!("power" in settings)) {
+        settings.power <- true;
+        doSave = true;
+    }
+
+    if (!("repeat" in settings)) {
+        settings.repeat <- false;
+        doSave = true;
+    }
+
+    if (!("inverse" in settings)) {
+        settings.inverse <- false;
+        doSave = true;
+    }
+
+    if (doSave) server.save(settings);
 }
 
 // Register the function to call when the device asks for a forecast
@@ -291,11 +309,24 @@ device.on("weather.get.location", locationLookup);
 //device.on("weather.get.forecast", sendForecast);
 device.on("weather.get.settings", function(dummy) {
     device.send("weather.set.settings", settings);
-    if (debug) server.log(http.jsonencode(settings, {"compact":true}));
+    if (settings.debug) server.log(http.jsonencode(settings, {"compact":true}));
 });
 
 // Set up the API that the agent will server
 api = Rocky();
+api.use(debugAPI);
+
+// Set up UI access security: HTTPS only
+api.authorize(function(context) {
+    // Mandate HTTPS connections
+    if (context.getHeader("x-forwarded-proto") != "https") return false;
+    return true;
+});
+
+api.onUnauthorized(function(context) {
+    // Incorrect level of access security
+    context.send(401, "Insecure access forbidden");
+});
 
 // GET at / returns the UI via a redirect to 'index.html'
 api.get("/", function(context) {
@@ -348,18 +379,18 @@ api.post("/update", function(context) {
             if (data.action == "update") {
                 sendForecast(true);
             } else if (data.action == "reboot") {
-                if (debug) server.log("Restarting device via UI");
-                reset();
+                if (settings.debug) server.log("Restarting device via UI");
+                initialiseSettings();
                 device.send("weather.set.reboot", true);
             } else if (data.action == "power") {
-                if (debug) server.log("Switching display power via UI");
+                if (settings.debug) server.log("Switching display power via UI");
                 settings.power = !settings.power;
                 device.send("weather.set.power", settings.power);
             } else if (data.action == "reset") {
                 // Clear and reset the settings, then
                 // reboot the device to apply them
-                reset();
-                if (debug) server.log("Restarting device via UI");
+                initialiseSettings();
+                if (settings.debug) server.log("Restarting device via UI");
                 device.send("weather.set.reboot", true);
             }
         } else {
@@ -388,42 +419,42 @@ api.post("/settings", function(context) {
         
         if ("angle" in data) {
             local a = data.angle.tointeger();
-            if (debug) server.log("Display angle changed by UI to " + a);
+            if (settings.debug) server.log("Display angle changed by UI to " + a);
             device.send("weather.set.angle", a);
             settings.angle = a;
         }
 
         if ("bright" in data) {
             local b = data.bright.tointeger();
-            if (debug) server.log("Display brightness changed by UI to " + b);
+            if (settings.debug) server.log("Display brightness changed by UI to " + b);
             device.send("weather.set.bright", b);
             settings.bright = b;
         }
 
         if ("power" in data) {
             local p = data.power;
-            if (debug) server.log("Display turned " + (p ? "on" : "off") + " by UI");
+            if (settings.debug) server.log("Display turned " + (p ? "on" : "off") + " by UI");
             device.send("weather.set.power", p);
             settings.power = p;
         }
 
         if ("repeat" in data) {
             local r = data.repeat;
-            if (debug) server.log("Repeat mode " + (r ? "en" : "dis") + "abled by UI");
+            if (settings.debug) server.log("Repeat mode " + (r ? "en" : "dis") + "abled by UI");
             device.send("weather.set.repeat", r);
             settings.repeat = r;
         }
 
         if ("period" in data) {
             local p = data.period.tointeger();
-            if (debug) server.log("Repeat period set to " + p);
+            if (settings.debug) server.log("Repeat period set to " + p);
             device.send("weather.set.period", p);
             settings.period = p;
         }
 
         if ("video" in data) {
             local i = data.video;
-            if (debug) server.log("LED set to " + (i ? "black on green" : "green on black") + " by UI");
+            if (settings.debug) server.log("LED set to " + (i ? "black on green" : "green on black") + " by UI");
             device.send("weather.set.video", i);
             settings.inverse = i;
         }
@@ -434,7 +465,7 @@ api.post("/settings", function(context) {
     }
 
     context.send(200, "OK");
-    if (server.save(settings) != 0) server.error("Could not save settings (code: " + r + ") at POST /settings");
+    server.save(settings);
 });
 
 // POST at /debug updates the passed setting(s)
@@ -444,11 +475,10 @@ api.post("/debug", function(context) {
     try {
         local data = http.jsondecode(context.req.rawbody);
         if ("debug" in data) {
-            debug = data.debug;
-            server.log("Debug " + (debug ? "enabled" : "disabled") + " by UI");
-            device.send("weather.set.debug", debug);
-            settings.debug = debug;
-            if (server.save(settings) != 0) server.error("Could not save settings (code: " + r + ") at POST /debug");
+            settings.debug = data.debug;
+            server.log("Debug " + (settings.debug ? "enabled" : "disabled") + " by UI");
+            device.send("weather.set.debug", settings.debug);
+            server.save(settings);
         } else {
             context.send(400, "Bad command posted by UI to /debug");
             return;
@@ -459,7 +489,7 @@ api.post("/debug", function(context) {
         return;
     }
 
-    context.send(200, (debug ? "Debug on" : "Debug off"));
+    context.send(200, (settings.debug ? "Debug on" : "Debug off"));
 });
 
 // GET at /controller/info returns app data for Controller
@@ -486,10 +516,10 @@ api.get("/controller/state", function(context) {
 restartTimer = imp.wakeup(AGENT_START_TIME, function() {
     if (!deviceSyncFlag) {
         if (device.isconnected()) {
-            if (debug) server.log("Reacquiring location due to agent restart");
+            if (settings.debug) server.log("Reacquiring location due to agent restart");
             locationLookup(true);
         } else {
-            if (debug) server.log("Agent restarted, but device not online");
+            if (settings.debug) server.log("Agent restarted, but device not online");
         }
     }
 });

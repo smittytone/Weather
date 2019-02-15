@@ -1,11 +1,9 @@
 // Weather Monitor
 // Copyright 2016-19, Tony Smith
 
-// IMPORTS
-// NOTE If you are not using a tool like Squinter or impt, please
-//      paste the contents of the file named in each line below into
-//      the device code at this point, and then delete or comment out
-//      all of the following #import statements
+// ********** IMPORTS **********
+// If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
+// with the contents of the named file(s):
 #import "../HT16K33Matrix/ht16k33matrix.class.nut"      // Source file in https://github.com/smittytone/HT16K33Matrix
 #import "../Location/location.class.nut"                // Source file in https://github.com/smittytone/Location
 #import "../generic/seriallog.nut"                      // Source file in https://github.com/smittytone/generic
@@ -13,7 +11,7 @@
 #import "../generic/disconnect.nut"                     // Source file in https://github.com/smittytone/generic
 
 
-// CONSTANTS
+// ********** CONSTANTS **********
 const INITIAL_ANGLE = 270;
 const INITIAL_BRIGHT = 5;
 const RECONNECT_TIMEOUT = 15;
@@ -21,7 +19,7 @@ const RECONNECT_DELAY = 300;
 const DISPLAY_REFRESH_INTERVAL = 30;
 
 
-// GLOBAL VARIABLES
+// ********** GLOBAL VARIABLES **********
 local locator = null;
 local matrix = null;
 local savedForecast = null;
@@ -40,8 +38,8 @@ local connecting = false;
 local inverse = false;
 
 
-// FUNCTIONS
-// Display functions
+// ********** DISPLAY FUNCTIONS **********
+
 function intro() {
     // This function sets the matrix pixels from the outside in, in a spiral pattern
     local x = 7, y = 0;
@@ -199,19 +197,19 @@ function refreshDisplay(data) {
 }
 
 
-// UTILITY FUNCTIONS
-// Function to clear any display refresh timer in flight
+// ********** UTILITY FUNCTIONS **********
 function clearTimer() {
+    // Function to clear any display refresh timer in flight
     if  (refreshTimer != null) {
         imp.cancelwakeup(refreshTimer);
         refreshTimer = null;
     }
 }
 
-// CONNECTION/RECONNECTION FUNCTIONS
-// This is the Disconnection Manager report handler
+// ********** CONNECTION/RECONNECTION FUNCTIONS **********
 function discHandler(event) {
-    if ("message" in event) seriallog.log("Disconnection Manager says: " + event.message);
+    // This is the Disconnection Manager report handler
+    if ("message" in event && debug) seriallog.log("Disconnection Manager says: " + event.message);
 
     if ("type" in event) {
         if (event.type == "connected") {
@@ -245,7 +243,12 @@ function discHandler(event) {
 }
 
 
-// START OF PROGRAM
+// ********** RUNTIME START **********
+
+// Load in generic boot message code
+// If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
+// with the contents of the named file(s):
+#import "../generic/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
 
 // Set up the geographical locator. The agent will use this when 
 // the device code sends a "weather.get.settings" message to it
@@ -305,24 +308,8 @@ iconset.cloudy <-       7;
 iconset.partlycloudy <- 8;
 iconset.thunderstorm <- 9;
 iconset.tornado <-      10;
-iconset.clearnight <-   11;;
+iconset.clearnight <-   11;
 iconset.none <-         12;
-
-/*
-iconset.clearday <-     "\x89\x42\x18\xBC\x3D\x18\x42\x91";
-iconset.rain <-         "\x8C\x5E\x1E\x5F\x3F\x9F\x5E\x0C";
-iconset.lightrain <-    "\x8C\x52\x12\x51\x31\x91\x52\x0C";
-iconset.snow <-         "\x14\x49\x2A\x1C\x1C\x2A\x49\x14";
-iconset.sleet <-        "\x4C\xBE\x5E\xBF\x5F\xBF\x5E\xAC";
-iconset.wind <-         "\x14\x14\x14\x14\x14\x55\x55\x22";
-iconset.fog <-          "\x55\xAA\x55\xAA\x55\xAA\x55\xAA";
-iconset.cloudy <-       "\x0C\x1E\x1E\x1F\x1F\x1F\x1E\x0C";
-iconset.partlycloudy <- "\x0C\x12\x12\x11\x11\x11\x12\x0C";
-iconset.thunderstorm <- "\x00\x00\x00\xF0\x1C\x07\x00\x00";
-iconset.tornado <-      "\x00\x02\x36\x7D\xDD\x8D\x06\x02";
-iconset.clearnight <-   "\x3C\x42\x81\xC3\xFF\xFF\x7E\x3C";  // old: "\x00\x00\x00\x81\xE7\x7E\x3C\x18";
-iconset.none <-         "\x00\x00\x02\xB9\x09\x06\x00\x00";
-*/
 
 
 // Set up agent interaction handlers
