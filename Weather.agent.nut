@@ -2,7 +2,7 @@
 // Copyright 2016-19, Tony Smith
 
 // ********** IMPORTS **********
-#require "DarkSky.class.nut:1.0.1"
+#require "DarkSky.agent.lib.nut:2.0.0"
 #require "Rocky.class.nut:2.0.2"
 #require "IFTTT.class.nut:1.0.0"
 
