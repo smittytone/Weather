@@ -43,7 +43,7 @@
         .btn-warning {width: 200px;}
         .rperiod { position:relative }
         .rperiod .rfield { width:220px; background:#a30000; color:#fff; padding:5px; cursor:pointer;
-                           font-family: Abel,sans-serif; font-size:18px; 
+                           font-family: Abel,sans-serif; font-size:18px;
                            -webkit-transition: all .4s ease-in-out;
                            transition: all .4s ease-in-out; }
         .rperiod .rfield:hover { background:#ffcc00; }
@@ -131,7 +131,7 @@
                                     <input type='checkbox' name='inverse' id='inverse' value='inverse'> Black on Green
                                 </div>
                                 <p style='font-size: 12px;'>&nbsp;<br />By default, the display operates in green on black. Check the box above to reverse this.</p>
-                            </div> 
+                            </div>
                         </div>
                         <hr />
                         <div align='center'>
@@ -170,7 +170,7 @@
                 <!-- Colophon Row -->
                 <div class='row'>
                     <div class='col'>
-                        <p class='colophon'>Weather Monitor &copy; Tony Smith, 2014-18<br /><a href='https://github.com/smittytone/Weather' target='_new'>
+                        <p class='colophon'>Weather Monitor &copy; Tony Smith, 2014-19<br /><a href='https://github.com/smittytone/Weather' target='_new'>
                         <img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32' /></a></p>
                     </div>
                 </div>
@@ -178,7 +178,7 @@
         </div>
     </div>
 
-    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js'></script>
     <script>
         $('.advanced').hide();
 
@@ -209,13 +209,13 @@
         $('#debug').click(setDebug);
         $('#repeat').click(setRepeat);
         $('#inverse').click(setInverse);
-        
+
         // Set the slider action
         var slider = document.getElementById('brightness');
         $('.brightness-status span').text(slider.value);
         slider.addEventListener('mouseup', updateSlider);
         slider.addEventListener('touchend', updateSlider);
-        
+
         // Set the 'Show Advanced' box to show/hide the settings at a click
         $('.showhide').click(function(){
             $('.advanced').toggle();
@@ -231,8 +231,8 @@
             $('.brightness-status span').text($('#brightness').val());
             setBright();
         }
-        
-        // Update the UI from incoming data sent by the agent 
+
+        // Update the UI from incoming data sent by the agent
         function updateReadout(data) {
             if (data.error) {
                 $('.error-message span').text(data.error);
@@ -243,7 +243,7 @@
                 $('.location-status span').text(data.location.place + ' (' + data.location.long + ', ' + data.location.lat + ')');
                 $('.brightness-status span').text(data.bright + 1);
                 $('#brightness').val(data.bright + 1);
-                
+
                 $('[name=angle]').each(function(i, v) {
                     if (data.angle == $(this).val()) {
                         $(this).prop('checked', true);
@@ -253,7 +253,7 @@
                 document.getElementById('debug').checked = data.debug;
                 document.getElementById('repeat').checked = data.repeat;
                 document.getElementById('inverse').checked = data.inverse;
-        
+
                 let s = data.period.toString() + ' Minute';
                 if (data.period > 1) { s = s + 's'; }
                 document.getElementById('rfield').value = s;
@@ -263,7 +263,7 @@
                     isOn = data.power;
                 }
             }
-            
+
             // Auto-update the UI every 30 seconds
             setTimeout(function() {
                 getState(updateReadout);
@@ -331,7 +331,7 @@
         function setRepeat() {
             // Tell the device to enter or leave repeat mode
             let isChecked = document.getElementById('repeat').checked;
-            
+
             if (isChecked) {
                 let period = document.getElementById('rfield').value;
                 if (period == 'Choose your repeat period') {
@@ -354,7 +354,7 @@
             }
             set({'period':p.toString()});
         }
-        
+
         function setInverse() {
             // Tell the device to enter or leave inverse video mode
             set({ 'video':document.getElementById('inverse').checked });
@@ -386,19 +386,19 @@
                     obj.find('.rfield').click(function() {
                         // onclick event: fadein 'list'
                         obj.find('.list').fadeIn(400);
-                        
-                        $(document).keyup(function(event) { 
+
+                        $(document).keyup(function(event) {
                             // keypress event: fadeout on 'escape'
                             if (event.keyCode == 27) { obj.find('.list').fadeOut(400); }
                         });
-                        
+
                         obj.find('.list').hover(
                             function(){},
                             function(){ $(this).fadeOut(400); }
                         );
                     });
-                    
-                    obj.find('.list li').click(function() { 
+
+                    obj.find('.list li').click(function() {
                         // onclick event: change field value with selected 'list' item and fadeout 'list'
                         obj.find('.rfield')
                             .val($(this).html())

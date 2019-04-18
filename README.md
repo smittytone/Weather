@@ -1,4 +1,4 @@
-# Weather 3.11.4 #
+# Weather 3.11.5 #
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
@@ -51,6 +51,8 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 3.11.5 &mdash; *18 April 2019*
+    - Update JQuery to 3.4.0
 - 3.11.4 &mdash; *28 March 2019*
     - Update dependencies:
         - [DarkSky library](https://developer.electricimp.com/libraries/webservices/darksky)
