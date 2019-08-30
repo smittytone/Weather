@@ -8,6 +8,8 @@
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
+#import "../generic/simpleslack.nut"                // Source code: https://github.com/smittytone/generic
+#import "../generic/crashReporter.nut"              // Source code: https://github.com/smittytone/generic
 #import "../Location/location.class.nut"            // Source file in https://github.com/smittytone/Location
 const HTML_STRING = @"
 #import "weather_ui.html"
@@ -235,7 +237,7 @@ function initialiseSettings() {
     settings.inverse <- false;
     server.save(settings);
     if (settings.debug) server.log("Clearing settings to default values");
-    
+
 }
 
 
@@ -246,7 +248,7 @@ function debugAPI(context, next) {
         server.log("API received a request at " + time() + ": " + context.req.method.toupper() + " @ " + context.req.path.tolower());
         if (context.req.rawbody.len() > 0) server.log("Request body: " + context.req.rawbody.tolower());
     }
-    
+
     // Invoke the next middleware
     next();
 }
@@ -344,7 +346,7 @@ api.get("/index.html", function(context) {
 // If there is an error, the JSON will contain the key 'error'
 api.get("/current", function(context) {
     local data = {};
-    
+
     if (savedData != null) {
         data = savedData;
     } else {
@@ -363,7 +365,7 @@ api.get("/current", function(context) {
     data.repeat <- settings.repeat;
     data.period <- settings.period;
     data.inverse <- settings.inverse;
-    
+
     context.send(200, http.jsonencode(data));
 });
 
@@ -416,7 +418,7 @@ api.post("/update", function(context) {
 api.post("/settings", function(context) {
     try {
         local data = http.jsondecode(context.req.rawbody);
-        
+
         if ("angle" in data) {
             local a = data.angle.tointeger();
             if (settings.debug) server.log("Display angle changed by UI to " + a);

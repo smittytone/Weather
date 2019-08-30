@@ -7,8 +7,8 @@
 #import "../HT16K33Matrix/ht16k33matrix.class.nut"      // Source file in https://github.com/smittytone/HT16K33Matrix
 #import "../Location/location.class.nut"                // Source file in https://github.com/smittytone/Location
 #import "../generic/seriallog.nut"                      // Source file in https://github.com/smittytone/generic
-#import "../generic/bootmessage.nut"                    // Source file in https://github.com/smittytone/generic
 #import "../generic/disconnect.nut"                     // Source file in https://github.com/smittytone/generic
+#import "../generic/crashReporter.nut"                  // Source code: https://github.com/smittytone/generic
 
 
 // ********** CONSTANTS **********
@@ -113,7 +113,7 @@ function outro() {
 function displayWeather(data) {
     // This function is called in response to a message from the server containing
     // a new hour-ahead weather forecast, or in response to a timer-fire if the user
-    // has applied the 'refresh display' setting. Refreshing the display shows the 
+    // has applied the 'refresh display' setting. Refreshing the display shows the
     // current forecast again, and the current forecast will continue to be shown
     // if the device goes offline for any period
 
@@ -121,7 +121,7 @@ function displayWeather(data) {
     if (data == null) {
         if (debug) seriallog.log("Agent sent null data");
         if (savedData != null) {
-            // Use a saved forecast, if we have one 
+            // Use a saved forecast, if we have one
             data = savedData;
         } else {
             return;
@@ -130,13 +130,13 @@ function displayWeather(data) {
 
     // Prepare the string used to display the weather forecastt by name...
     local ds = "    " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + "  ";
-    
+
     // ...then add the forecast temperature...
     ds = ds + format("Out: %.1f", data.temp) + "\x7F" + "c";
-    
+
     // ...and finally add the interior temperature, if we have it
     if (localTemp != null) ds = ds + format(" In: %.1f", localTemp) + "\x7F" + "c";
-    
+
     // Prepare an icon to display
     local icon = null;
 
@@ -159,13 +159,13 @@ function displayWeather(data) {
     if (displayOn) {
         // Clear this screen
         matrix.clearDisplay();
-        
+
         // Draw text - spaces added to scroll everything off the matrix
         matrix.displayLine(ds + "    ");
-        
+
         // Pause for half a second
         imp.sleep(0.5);
-        
+
         // Display the weather icon
         matrix.displayCharacter(icon);
 
@@ -250,7 +250,10 @@ function discHandler(event) {
 // with the contents of the named file(s):
 #import "../generic/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
 
-// Set up the geographical locator. The agent will use this when 
+// Set up the crash reporter
+crashReporter.init();
+
+// Set up the geographical locator. The agent will use this when
 // the device code sends a "weather.get.settings" message to it
 locator = Location();
 
@@ -337,7 +340,7 @@ agent.on("weather.set.angle", function(a) {
     // The user has updated the device brightness/display angle settings
     if (debug) seriallog.log("Updating display angle (" + a + ")");
     angle = a;
-    if (displayOn) { 
+    if (displayOn) {
         matrix.init(bright, a);
         if (savedData != null) refreshDisplay(savedData);
     }
@@ -373,7 +376,7 @@ agent.on("weather.set.repeat", function(shouldRepeat) {
 agent.on("weather.set.period", function(period) {
     // Convert minutes (agent setting) to seconds (device setting)
     displayPeriod = period * 60;
-    
+
     // If we're repeating the display, refresh it now
     if (displayRepeat) {
         clearTimer();
@@ -420,14 +423,14 @@ agent.on("weather.set.settings", function(data) {
     locator.setDebug(debug);
 
     if (debug) seriallog.log("Received device settings from agent");
-    
+
     // The device's settings are now in place, so get its location
     agent.send("weather.get.location", true);
 });
 
 
 // If the device is connected, request its settings from the agent.
-// This will in turn get the device's location, causing the agent to 
+// This will in turn get the device's location, causing the agent to
 // begin sending forecasts every 15 minutes.
 if (server.isconnected()) {
     // Tell the agent that the device is ready
