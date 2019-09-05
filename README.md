@@ -51,7 +51,7 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
-- 3.11.6 *unreleased*
+- 3.11.6 *5 September 2019*
     - Update Jquery to 3.4.1, Boostrap to 4.3.1, Bootmessage to 2.2.2
     - Add CrashReporter 1.0.1, Simpleslack 1.0.1
 - 3.11.5 &mdash; *18 April 2019*
