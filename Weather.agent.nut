@@ -3,7 +3,7 @@
 
 // ********** IMPORTS **********
 #require "DarkSky.agent.lib.nut:2.0.0"
-#require "Rocky.class.nut:2.0.2"
+#require "Rocky.agent.lib.nut:3.0.0"
 #require "IFTTT.class.nut:1.0.0"
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
@@ -315,7 +315,7 @@ device.on("weather.get.settings", function(dummy) {
 });
 
 // Set up the API that the agent will server
-api = Rocky();
+api = Rocky.init();
 api.use(debugAPI);
 
 // Set up UI access security: HTTPS only
