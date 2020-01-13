@@ -1,5 +1,5 @@
 // Weather Monitor
-// Copyright 2016-19, Tony Smith
+// Copyright 2016-20, Tony Smith
 
 // ********** IMPORTS **********
 #require "DarkSky.agent.lib.nut:2.0.0"

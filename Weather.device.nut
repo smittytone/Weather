@@ -1,5 +1,5 @@
 // Weather Monitor
-// Copyright 2016-19, Tony Smith
+// Copyright 2016-20, Tony Smith
 
 // ********** IMPORTS **********
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
