@@ -132,10 +132,10 @@ function displayWeather(data) {
     local ds = "    " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + "  ";
 
     // ...then add the forecast temperature...
-    ds = ds + format("Out: %.1f", data.temp) + "\x7F" + "c";
+    ds +=  (format("Out: %.1f", data.temp) + "\x7F" + "c");
 
     // ...and finally add the interior temperature, if we have it
-    if (localTemp != null) ds = ds + format(" In: %.1f", localTemp) + "\x7F" + "c";
+    if (localTemp != null) ds += (format(" In: %.1f", localTemp) + "\x7F" + "c");
 
     // Prepare an icon to display
     local icon = null;
@@ -181,8 +181,8 @@ function displayWeather(data) {
     // Present debug info if we should
     if (debug) {
         local ls = "Forecast: " + data.cast.slice(0, 1).toupper() + data.cast.slice(1, data.cast.len()) + ". Temperature: ";
-        ls = ls + format("Out: %.1f", data.temp.tofloat()) + "\xC2\xB0" + "c";
-        if (localTemp != null) ls = ls + format(" In: %.1f", localTemp) + "\xC2\xB0" + "c";
+        ls += (format("Out: %.1f", data.temp.tofloat()) + "\xC2\xB0" + "c");
+        if (localTemp != null) ls += (format(" In: %.1f", localTemp) + "\xC2\xB0" + "c");
         seriallog.log(ls);
         seriallog.log("Current repeat settings: period is " + displayPeriod + "s, repeat is " + (displayRepeat ? "on" : "off"));
     }
@@ -284,19 +284,19 @@ matrix.init(INITIAL_BRIGHT, INITIAL_ANGLE);
 intro();
 
 // Set up weather icons using user-definable characters
-matrix.defineCharacter(0, "\x89\x42\x18\xBC\x3D\x18\x42\x91");
-matrix.defineCharacter(1, "\x8C\x5E\x1E\x5F\x3F\x9F\x5E\x0C");
-matrix.defineCharacter(2, "\x8C\x52\x12\x51\x31\x91\x52\x0C");
-matrix.defineCharacter(3, "\x14\x49\x2A\x1C\x1C\x2A\x49\x14");
-matrix.defineCharacter(4, "\x4C\xBE\x5E\xBF\x5F\xBF\x5E\xAC");
-matrix.defineCharacter(5, "\x14\x14\x14\x14\x14\x55\x55\x22");
-matrix.defineCharacter(6, "\x55\xAA\x55\xAA\x55\xAA\x55\xAA");
-matrix.defineCharacter(7, "\x0C\x1E\x1E\x1F\x1F\x1F\x1E\x0C");
-matrix.defineCharacter(8, "\x0C\x12\x12\x11\x11\x11\x12\x0C");
-matrix.defineCharacter(9, "\x00\x00\x00\xF0\x1C\x07\x00\x00");
-matrix.defineCharacter(10, "\x00\x02\x36\x7D\xDD\x8D\x06\x02");
-matrix.defineCharacter(11, "\x3C\x42\x81\xC3\xFF\xFF\x7E\x3C");
-matrix.defineCharacter(12, "\x00\x00\x02\xB9\x09\x06\x00\x00");
+matrix.defineCharacter(0, "\x91\x42\x18\x3d\xbc\x18\x42\x89"); //"\x89\x42\x18\xBC\x3D\x18\x42\x91"
+matrix.defineCharacter(1, "\x31\x7A\x78\xFA\xFC\xF9\x7A\x30"); //"\x8C\x5E\x1E\x5F\x3F\x9F\x5E\x0C"
+matrix.defineCharacter(2, "\x31\x7A\x78\xFA\xFC\xF9\x7A\x30");
+matrix.defineCharacter(3, "\x28\x92\x54\x38\x38\x54\x92\x28"); // \x14\x49\x2A\x1C\x1C\x2A\x49\x14
+matrix.defineCharacter(4, "\x32\x7D\x7A\xFD\xFA\xFD\x7A\x35"); // \x4C\xBE\x5E\xBF\x5F\xBF\x5E\xAC
+matrix.defineCharacter(5, "\x28\x28\x28\x28\x28\xAA\xAA\x44"); // \x14\x14\x14\x14\x14\x55\x55\x22
+matrix.defineCharacter(6, "\xAA\x55\xAA\x55\xAA\x55\xAA\x55"); // \x55\xAA\x55\xAA\x55\xAA\x55\xAA
+matrix.defineCharacter(7, "\x30\x78\x78\xF8\xF8\xF8\x78\x30"); // \x0C\x1E\x1E\x1F\x1F\x1F\x1E\x0C
+matrix.defineCharacter(8, "\x30\x48\x48\x88\x88\x88\x48\x30"); // \x0C\x12\x12\x11\x11\x11\x12\x0C
+matrix.defineCharacter(9, "\x00\x00\x00\x0F\x38\xE0\x00\x00"); // \x00\x00\x00\xF0\x1C\x07\x00\x00
+matrix.defineCharacter(10, "\x00\x40\x6C\xBE\xBB\xB1\x60\x40"); // \x00\x02\x36\x7D\xDD\x8D\x06\x02
+matrix.defineCharacter(11, "\x3C\x42\x81\xC3\xFF\xFF\x7E\x3C"); // \x3C\x42\x81\xC3\xFF\xFF\x7E\x3C
+matrix.defineCharacter(12, "\x00\x00\x40\x9D\x90\x60\x00\x00"); // \x00\x00\x02\xB9\x09\x06\x00\x00
 
 // Set up a table to map incoming weather condition names
 // (eg. "clearday") to user-definable character Ascii values
@@ -313,7 +313,6 @@ iconset.thunderstorm <- 9;
 iconset.tornado <-      10;
 iconset.clearnight <-   11;
 iconset.none <-         12;
-
 
 // Set up agent interaction handlers
 agent.on("weather.show.forecast", function(data) {
