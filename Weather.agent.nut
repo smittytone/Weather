@@ -262,7 +262,7 @@ function debugAPI(context, next) {
 // mailer = IFTTT("YOUR_APPLET_ID");
 // agent = "YOUR ENV TAIL AGENT URL";
 // const APP_CODE = "Weather";
-#import "~/Dropbox/Programming/Imp/Codes/weather.nut"
+#import "~/OneDrive/Programming/Weather/weather.nut"
 
 // Specify UK units for all forecasts, ie. temperatures in Celsius
 weather.setUnits("uk");
