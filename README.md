@@ -51,8 +51,8 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
-- 3.11.8 *Unreleased*
-    - Support HT16K33Matrix 2.1.0.
+- 3.11.8 *26 February 2020*
+    - Support HT16K33Matrix 3.0.0.
 - 3.11.7 *18 December 2019*
     - Support Rocky 3.0.0.
 - 3.11.6 *5 September 2019*
