@@ -4,11 +4,11 @@
 // ********** IMPORTS **********
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../HT16K33Matrix/ht16k33matrix.class.nut"      // Source file in https://github.com/smittytone/HT16K33Matrix
-#import "../Location/location.class.nut"                // Source file in https://github.com/smittytone/Location
-#import "../generic/seriallog.nut"                      // Source file in https://github.com/smittytone/generic
-#import "../generic/disconnect.nut"                     // Source file in https://github.com/smittytone/generic
-#import "../generic/crashReporter.nut"                  // Source code: https://github.com/smittytone/generic
+#import "../HT16K33Matrix-Squirrel/ht16k33matrix.class.nut"     // Source file in https://github.com/smittytone/HT16K33Matrix
+#import "../Location/location.class.nut"                        // Source file in https://github.com/smittytone/Location
+#import "../generic-squirrel/seriallog.nut"                     // Source file in https://github.com/smittytone/generic
+#import "../generic-squirrel/disconnect.nut"                    // Source file in https://github.com/smittytone/generic
+#import "../generic-squirrel/crashReporter.nut"                 // Source code: https://github.com/smittytone/generic
 
 
 // ********** CONSTANTS **********
@@ -248,7 +248,7 @@ function discHandler(event) {
 // Load in generic boot message code
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
+#import "../generic-squirrel/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
 
 // Set up the crash reporter
 crashReporter.init();
