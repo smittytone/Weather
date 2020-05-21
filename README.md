@@ -1,4 +1,4 @@
-# Weather 3.11.8 #
+# Weather 3.11.9 #
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
@@ -51,6 +51,9 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 3.11.9 *21 May 2020*
+    - Update JQuery to 3.5.x.
+    - Update Bootstrap to 4.5.x.
 - 3.11.8 *26 February 2020*
     - Support HT16K33Matrix 3.0.0.
 - 3.11.7 *18 December 2019*
@@ -58,32 +61,32 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 - 3.11.6 *5 September 2019*
     - Update Jquery to 3.4.1, Boostrap to 4.3.1, Bootmessage to 2.2.2
     - Add CrashReporter 1.0.1, Simpleslack 1.0.1
-- 3.11.5 &mdash; *18 April 2019*
+- 3.11.5 *18 April 2019*
     - Update JQuery to 3.4.0
-- 3.11.4 &mdash; *28 March 2019*
+- 3.11.4 *28 March 2019*
     - Update dependencies:
         - [DarkSky library](https://developer.electricimp.com/libraries/webservices/darksky)
         - [Location 1.5.3](https://github.com/smittytone/Location)
-- 3.11.3 &mdash; *15 February 2019*
+- 3.11.3 *15 February 2019*
     - Minor agent code changes
-- 3.11.2 &mdash; *12 February 2019*
+- 3.11.2 *12 February 2019*
     - Improve Web UI CSS for small screen sizes
     - Update dependencies (Bootstrap 4.3.0)
-- 3.11.1 &mdash; *7 February 2019*
+- 3.11.1 *7 February 2019*
     - Adjust temperature data type and display precision
-- 3.11.0 &mdash; *31 January 2019*
+- 3.11.0 *31 January 2019*
     - Add inverse video option
     - Remove **Restart** button (largely redundant now)
     - Apply weather icons as LED matrix user-definable characters
-- 3.10.1 &mdash; *1 November 2018*
+- 3.10.1 *1 November 2018*
     - Update dependencies
-- 3.10.0 &mdash; *27 September 2018*
+- 3.10.0 *27 September 2018*
     - Add control to set the forecast display repeat period
     - Stop DarkSky requests busting the limit
-- 3.9.0 &mdash; *30 July 2018*
+- 3.9.0 *30 July 2018*
     - Add [DisconnectionManager 2.0.0](https://github.com/smittytone/generic/blob/master/disconnect.nut)
     - Add a periodic repeat of the current forecast on the display, enabled or disabled via the web UI
-- 3.8.0 &mdash; *8 June 2018*
+- 3.8.0 *8 June 2018*
     - Update Web UI to be based on [Bootstrap 4.1.1](https://getbootstrap.com/)
     - Separate out Web UI into own file for clarity
     - Add support for [serial logging](https://github.com/smittytone/generic/blob/master/seriallog.nut)
@@ -100,4 +103,4 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Licence ##
 
-The Weather design and software is copyright &copy; 2014-19 Tony Smith and made available under the [MIT Licence](./LICENSE).
+The Weather design and software is copyright &copy; 2014-20 Tony Smith and made available under the [MIT Licence](./LICENSE).

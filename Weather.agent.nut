@@ -8,9 +8,9 @@
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic-squirrel/simpleslack.nut"                // Source code: https://github.com/smittytone/generic
-#import "../generic-squirrel/crashReporter.nut"              // Source code: https://github.com/smittytone/generic
-#import "../generic-squirrel/location.class.nut"            // Source file in https://github.com/smittytone/Location
+#import "../generic-squirrel/simpleslack.nut"           // Source code: https://github.com/smittytone/generic-squirrel
+#import "../generic-squirrel/crashReporter.nut"         // Source code: https://github.com/smittytone/generic-squirrel
+#import "../generic-squirrel/location.class.nut"        // Source file in https://github.com/smittytone/Location
 const HTML_STRING = @"
 #import "weather_ui.html"
 ";                                                  // Source file in https://github.com/smittytone/Weather
