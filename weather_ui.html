@@ -90,11 +90,14 @@
                         </div>
                         <p><small>&nbsp;</small></p>
                         <div class='row' style='font-family:Abel,sans-serif'>
-                            <div class='col-6 update-button' align='center'>
+                            <div class='col-4 update-button' align='center'>
                                 <button class='btn btn-warning' type='submit' id='updater'>Update Monitor</button>
                             </div>
-                            <div class='col-6 power-button' align='center'>
+                            <div class='col-4 power-button' align='center'>
                                 <button class='btn btn-warning' type='submit' id='powerer'>Turn Display Off</button>
+                            </div>
+                            <div class='col-4 locate-button' align='center'>
+                                <button class='btn btn-warning' type='submit' id='loctater'>Relocate Device</button>
                             </div>
                         </div>
                     </div>
@@ -170,7 +173,7 @@
                 <!-- Colophon Row -->
                 <div class='row'>
                     <div class='col'>
-                        <p class='colophon'>Weather Monitor &copy; Tony Smith, 2014-20<br /><a href='https://github.com/smittytone/Weather' target='_new'>
+                        <p class='colophon'>Weather Monitor &copy; Tony Smith, 2020<br /><a href='https://github.com/smittytone/Weather' target='_new'>
                         <img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32' /></a></p>
                     </div>
                 </div>
@@ -201,6 +204,7 @@
         $('.update-button button').click(doUpdate);
         $('.reboot-button button').click(doReboot);
         $('.reset-button button').click(doReset);
+        $('.locate-button button').click(doLocate);
         $('.power-button button').click(setPower);
         $('#angle0').click(setAngle);
         $('#angle90').click(setAngle);
@@ -296,6 +300,12 @@
         function doReset() {
             // Trigger a device reset
             doAction({'action':'reset'});
+        }
+
+        function doLocate() {
+            // FROM 3.12.0
+            // Trigger a re-location
+            doAction({'action':'locate'});
         }
 
         function setPower() {

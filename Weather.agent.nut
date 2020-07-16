@@ -1,5 +1,5 @@
 // Weather Monitor
-// Copyright 2016-20, Tony Smith
+// Copyright 2020, Tony Smith
 
 // ********** IMPORTS **********
 #require "DarkSky.agent.lib.nut:2.0.0"
@@ -10,7 +10,7 @@
 // with the contents of the named file(s):
 #import "../generic-squirrel/simpleslack.nut"           // Source code: https://github.com/smittytone/generic-squirrel
 #import "../generic-squirrel/crashReporter.nut"         // Source code: https://github.com/smittytone/generic-squirrel
-#import "../generic-squirrel/location.class.nut"        // Source file in https://github.com/smittytone/Location
+#import "../Location/location.class.nut"                // Source file in https://github.com/smittytone/Location
 const HTML_STRING = @"
 #import "weather_ui.html"
 ";                                                  // Source file in https://github.com/smittytone/Weather
@@ -32,9 +32,9 @@ local settings = null;
 local api = null;
 local savedData = null;
 
-local myLongitude = -0.123038;
-local myLatitude = 51.568330;
-local myLocation = "London, UK";
+local myLongitude = -1;
+local myLatitude = -1;
+local myLocation = "Unknown";
 local locationTime = -1;
 local darkSkyCount = 0;
 
@@ -144,18 +144,18 @@ function forecastCallback(err, data) {
 function locationLookup(dummy) {
     // Now we've received a message from the device, if the agent restart timer is
     // running, kill it
-    if (restartTimer != null) {
+    if (restartTimer) {
         imp.cancelwakeup(restartTimer);
         restartTimer = null;
     }
 
     // Kill the weather forecast timer
-    if (weatherTimer != null) {
+    if (weatherTimer) {
         imp.cancelwakeup(weatherTimer);
         weatherTimer = null;
     }
 
-    if ((locationTime != -1) && (time() - locationTime < 86400)) {
+    if (locationTime != -1) {
         // No need to check within one day of locating the device
         sendForecast(true);
         return;
@@ -168,6 +168,14 @@ function locationLookup(dummy) {
             myLatitude = locale.latitude;
             myLocation = parsePlaceData(locale.placeData);
             locationTime = time();
+
+            // FROM 3.12.0
+            // Save the location to minimize lookups
+            settings.loc <- { "tim": locationTime,
+                              "plc": myLocation,
+                              "lon": myLongitude,
+                              "lat": myLatitude};
+            server.save(settings);
 
             if (settings.debug) {
                 server.log("Co-ordinates: " + myLongitude + ", " + myLatitude);
@@ -235,6 +243,10 @@ function initialiseSettings() {
     settings.repeat <- false;
     settings.period <- 15;
     settings.inverse <- false;
+    settings.loc <- { "tim": locationTime,
+                      "plc": myLocation,
+                      "lon": myLongitude,
+                      "lat": myLatitude};
     server.save(settings);
     if (settings.debug) server.log("Clearing settings to default values");
 
@@ -301,6 +313,21 @@ if (loadedSettings.len() == 0) {
     if (!("inverse" in settings)) {
         settings.inverse <- false;
         doSave = true;
+    }
+
+    if (!("loc" in settings)) {
+        settings.loc <- { "tim": locationTime,
+                          "plc": myLocation,
+                          "lon": myLongitude,
+                          "lat": myLatitude};
+        doSave = true;
+    } else {
+        // FROM 3.12.0
+        // Set location
+        myLongitude = settings.loc.lon;
+        myLatitude = settings.loc.lat;
+        myLocation = settings.loc.plc;
+        locationTime = settings.loc.tim;
     }
 
     if (doSave) server.save(settings);
@@ -394,6 +421,10 @@ api.post("/update", function(context) {
                 initialiseSettings();
                 if (settings.debug) server.log("Restarting device via UI");
                 device.send("weather.set.reboot", true);
+            } else if (data.action == "locate") {
+                if (settings.debug) server.log("Relocating device");
+                locationTime = -1;
+                locationLookup(true);
             }
         } else {
             context.send(400, "Bad command posted by UI to /update");
