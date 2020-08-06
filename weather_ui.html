@@ -33,14 +33,14 @@
         p.subhead {color:#ffcc00; font-size: 22px; line-height: 24px; vertical-align: middle;}
         p.postsubhead {margin-top: 15px; font-size: 22px;}
         p.colophon {font-size: 14px; text-align: center;}
-        h2 {color: #ffcc00; font-family: Audiowide, sans-serif; font-weight:bold; font-size: 36px;}
+        h2 {color: #ffcc00; font-family: Audiowide, sans-serif; font-weight:bold;font-size: 38px;margin-top:16px;margin-bottom: 32px;}
         h4 {color: white; font-family: Abel, sans-serif; font-size: 22px;}
         td {color: white; font-family: Abel, sans-serif;}
         hr {border-color: #ffcc00;}
         .advanced {background-color: #a90000;}
         .uicontent {border: 2px solid #ffcc00;}
-        .container {padding: 20px;}
-        .btn-warning {width: 200px;}
+        .container {padding: 20px;overflow-x: hidden;}
+        .btn-warning {width: 30%%;}
         .rperiod { position:relative }
         .rperiod .rfield { width:220px; background:#a30000; color:#fff; padding:5px; cursor:pointer;
                            font-family: Abel,sans-serif; font-size:18px;
@@ -58,9 +58,9 @@
         @media only screen and (max-width: 700px) {
             .container {padding: 0px; width: 100%%; margin: 0%%;}
             .uicontent {border: 0px; width: 100%%; margin: 0%%;}
-            .btn-warning {width: 142px;}
-            .col-2 {max-width: 0%%; flex: 0 0 0%%;}
+            .col-2 {max-width: 0; flex: 0 0 0;}
             .col-8 {max-width: 100%%; flex: 0 0 100%%;}
+            h2 {margin-bottom: 16px;font-size: 32px;}
         }
         @media only screen and (max-width: 340px) {
             .btn-warning {width: 124px;}
@@ -74,7 +74,7 @@
                 <!-- Title and Data Readout Row -->
                 <div class='row' align='center'>
                     <div class='col'>
-                        <h2 class='text-center'>&nbsp;<br />Weather Monitor<br />&nbsp;</h2>
+                        <h2 class='text-center'>Weather Monitor</h2>
                         <h4 class='text-center temp-status'>Outside Temperature: <span></span>&deg;C&nbsp;</h4>
                         <h4 class='text-center outlook-status'>Current Outlook: <span></span></h4>
                         <p class='text-center location-status'>Device Location: <span></span></p>
@@ -83,29 +83,25 @@
                 </div>
                 <!-- Controls Row -->
                 <div class='row' align='center'>
-                    <div class='col-2'>&nbsp;</div>
+                    <div class='col-2'></div>
                     <div class='col-8'>
                         <div style='background-color:#a30000;height:32px;text-align:middle'>
                             <p class='subhead text-center'>Controls</p>
                         </div>
                         <p><small>&nbsp;</small></p>
                         <div class='row' style='font-family:Abel,sans-serif'>
-                            <div class='col-4 update-button' align='center'>
+                            <div class='col'>
                                 <button class='btn btn-warning' type='submit' id='updater'>Update Monitor</button>
-                            </div>
-                            <div class='col-4 power-button' align='center'>
                                 <button class='btn btn-warning' type='submit' id='powerer'>Turn Display Off</button>
-                            </div>
-                            <div class='col-4 locate-button' align='center'>
-                                <button class='btn btn-warning' type='submit' id='loctater'>Relocate Device</button>
+                                <button class='btn btn-warning' type='submit' id='locater'>Relocate Device</button>
                             </div>
                         </div>
                     </div>
-                    <div class='col-2'>&nbsp;</div>
+                    <div class='col-2'></div>
                 </div>
                 <!-- Settings Row -->
                 <div class='row'>
-                    <div class='col-2'>&nbsp;</div>
+                    <div class='col-2'></div>
                     <div class='col-8'>
                         <p><small>&nbsp;</small></p>
                         <div style='background-color:#a30000;height:32px'>
@@ -168,7 +164,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class='col-3'>&nbsp;</div>
+                    <div class='col-2'></div>
                 </div>
                 <!-- Colophon Row -->
                 <div class='row'>
@@ -176,7 +172,6 @@
                         <p class='colophon'>Weather Monitor &copy; Tony Smith, 2020<br /><a href='https://github.com/smittytone/Weather' target='_new'>
                         <img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32' /></a></p>
                     </div>
-                </div>
             </div>
         </div>
     </div>
@@ -201,11 +196,9 @@
         getState(updateReadout);
 
         // Set UI click actions
-        $('.update-button button').click(doUpdate);
-        $('.reboot-button button').click(doReboot);
-        $('.reset-button button').click(doReset);
-        $('.locate-button button').click(doLocate);
-        $('.power-button button').click(setPower);
+        $('#updater').click(doUpdate);
+        $('#locater').click(doLocate);
+        $('#powerer').click(setPower);
         $('#angle0').click(setAngle);
         $('#angle90').click(setAngle);
         $('#angle180').click(setAngle);
@@ -213,6 +206,8 @@
         $('#debug').click(setDebug);
         $('#repeat').click(setRepeat);
         $('#inverse').click(setInverse);
+        $('.reboot-button button').click(doReboot);
+        $('.reset-button button').click(doReset);
 
         // Set the slider action
         var slider = document.getElementById('brightness');
@@ -311,7 +306,7 @@
         function setPower() {
             // Trigger the screen to turn off or on
             isOn = !isOn;
-            $('.power-button button').text(isOn ? 'Turn Display Off' : 'Turn Display On');
+            $('#powerer').text(isOn ? 'Display Off' : 'Display On');
             set({'power':isOn});
         }
 

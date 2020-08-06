@@ -51,9 +51,10 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
-- 3.12.0 *Unreleased*
+- 3.12.0 *06 August 2020*
     - Persist device location; never check again unless device reset or user requests location update via UI.
         - This is it minimize Google charges.
+    - CSS improvements.
 - 3.11.9 *21 May 2020*
     - Update JQuery to 3.5.x.
     - Update Bootstrap to 4.5.x.
