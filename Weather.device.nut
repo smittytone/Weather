@@ -13,7 +13,7 @@
 
 // ********** CONSTANTS **********
 const INITIAL_ANGLE = 270;
-const INITIAL_BRIGHT = 5;
+const INITIAL_BRIGHT = 2;
 const RECONNECT_TIMEOUT = 15;
 const RECONNECT_DELAY = 300;
 const DISPLAY_REFRESH_INTERVAL = 30;
