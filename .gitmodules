@@ -1,0 +1,9 @@
+[submodule "Location"]
+	path = Location
+	url = https://github.com/smittytone/Location.git
+[submodule "HT16K33Matrix-Squirrel"]
+	path = HT16K33Matrix-Squirrel
+	url = https://github.com/smittytone/HT16K33Matrix-Squirrel.git
+[submodule "generic-squirrel"]
+	path = generic-squirrel
+	url = https://github.com/smittytone/generic-squirrel.git

@@ -1,4 +1,4 @@
-# Weather 3.12.0 #
+# Weather 3.12.1 #
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
@@ -28,6 +28,14 @@ Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform
 
 ![Weather Monitor](images/wm.jpg)
 
+### Cloning this Repository ###
+
+This repo pulls in some dependencies through git submodules. Use this command to clone the repo and get the libraries on which it depends:
+
+```
+git clone --recurse-submodules https://github.com/smittytone/Weather.git
+```
+
 ### Setup ###
 
 1. Visit [Electric Imp](https://impcentral.electricimp.com/login/) to sign up for a free developer account. You will be asked to confirm your email address.
@@ -51,6 +59,9 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 3.12.1 *28 January 2021*
+    - Use submodules for certain dependencies.
+    - Update to [Rocky 3.0.1](https://developer.electricimp.com/libraries/utilities/rocky).
 - 3.12.0 *06 August 2020*
     - Persist device location; never check again unless device reset or user requests location update via UI.
         - This is it minimize Google charges.
@@ -97,14 +108,7 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
     - Update dependencies, including [JQuery 3.3.1](https://jquery.com)
     - Prevent Ajax XHR caching
     - Support polite deployment
-- 3.7.0
-    - Update dependencies
-    - Assorted code tweaks, minor bug fixes made
-- 3.6.0
-    - Add support for [Location class 1.3.0](https://github.com/smittytone/Location)
-    - Add icon for light rain (drizzle)
-    - Nominate generic fonts for web UI in case web fonts can't be loaded
 
 ## Licence ##
 
-The Weather design and software is copyright &copy; 2020 Tony Smith and made available under the [MIT Licence](./LICENSE).
+The Weather design and software is copyright &copy; 2021 Tony Smith and made available under the [MIT Licence](./LICENSE).

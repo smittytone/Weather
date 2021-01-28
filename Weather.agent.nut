@@ -1,19 +1,19 @@
 // Weather Monitor
-// Copyright 2020, Tony Smith
+// Copyright 2021, Tony Smith
 
 // ********** IMPORTS **********
 #require "DarkSky.agent.lib.nut:2.0.0"
-#require "Rocky.agent.lib.nut:3.0.0"
+#require "Rocky.agent.lib.nut:3.0.1"
 #require "IFTTT.class.nut:1.0.0"
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic-squirrel/simpleslack.nut"           // Source code: https://github.com/smittytone/generic-squirrel
-#import "../generic-squirrel/crashReporter.nut"         // Source code: https://github.com/smittytone/generic-squirrel
-#import "../Location/location.class.nut"                // Source file in https://github.com/smittytone/Location
+#import "./generic-squirrel/simpleslack.nut"            // Source code: https://github.com/smittytone/generic-squirrel
+#import "./generic-squirrel/crashReporter.nut"          // Source code: https://github.com/smittytone/generic-squirrel
+#import "./Location/location.class.nut"                 // Source file in https://github.com/smittytone/Location
 const HTML_STRING = @"
 #import "weather_ui.html"
-";                                                  // Source file in https://github.com/smittytone/Weather
+";                                                      // Source file in https://github.com/smittytone/Weather
 
 // ********** CONSTANTS **********
 const FORECAST_REFRESH_INTERVAL = 900;  // 15 minutes
@@ -44,7 +44,7 @@ local deviceSyncFlag = false;
 // ********** FORECAST FUNCTIONS **********
 function sendForecast(dummy) {
     // Request a weather forecast, but only if there are less than 1000 previous requests today
-    // NOTE the count is maintined by DarkSky; we reload it every time
+    // NOTE the count is maintained by DarkSky; we reload it every time
     if (darkSkyCount < 990) {
         if (settings.debug) server.log("Requesting weather forecast data from Dark Sky");
         weather.forecastRequest(myLongitude, myLatitude, forecastCallback.bindenv(this));
