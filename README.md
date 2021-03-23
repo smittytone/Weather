@@ -1,4 +1,4 @@
-# Weather 3.12.1 #
+# Weather 3.12.2 #
 
 Simple 8x8 hour-ahead weather forecast gadget based on the Electric Imp Platform.
 
@@ -59,6 +59,8 @@ The Weather Monitor has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 3.12.2 *Unreleased*
+    - Removed code targeting pre-impOS 42 releases.
 - 3.12.1 *28 January 2021*
     - Use submodules for certain dependencies.
     - Update to [Rocky 3.0.1](https://developer.electricimp.com/libraries/utilities/rocky).

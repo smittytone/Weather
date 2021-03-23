@@ -1,5 +1,5 @@
 // Weather Monitor
-// Copyright 2020, Tony Smith
+// Copyright 2021, Tony Smith
 
 // ********** IMPORTS **********
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
@@ -53,23 +53,23 @@ function intro() {
         if (dx == 1 && x == mx) {
             dy = 1;
             dx = 0;
-            mx = mx - 1;
+            mx -= 1;
         } else if (dx == -1 && x == nx) {
-            nx = nx + 1;
+            nx += 1;
             dy = -1;
             dx = 0;
         } else if (dy == 1 && y == my) {
             dy = 0;
             dx = -1;
-            my = my - 1;
+            my -= 1;
         } else if (dy == -1 && y == ny) {
             dx = 1;
             dy = 0;
-            ny = ny + 1;
+            ny += 1;
         }
 
-        x = x + dx;
-        y = y + dy;
+        x += dx;
+        y += dy;
 
         imp.sleep(0.015);
     }
@@ -88,7 +88,7 @@ function outro() {
         if (dx == 1 && x == mx) {
             dy = -1;
             dx = 0;
-            mx = mx + 1;
+            mx += 1;
         } else if (dx == -1 && x == nx) {
             nx = nx - 1;
             dy = 1;
@@ -96,15 +96,15 @@ function outro() {
         } else if (dy == 1 && y == my) {
             dy = 0;
             dx = 1;
-            my = my + 1;
+            my += 1;
         } else if (dy == -1 && y == ny) {
             dx = -1;
             dy = 0;
-            ny = ny - 1;
+            ny -= 1;
         }
 
-        x = x + dx;
-        y = y + dy;
+        x += dx;
+        y += dy;
 
         imp.sleep(0.015);
     }
@@ -385,12 +385,7 @@ agent.on("weather.set.period", function(period) {
 
 agent.on("weather.set.reboot", function(dummy) {
     // The user has asked the device to reboot
-    local v = bootinfo.version().tofloat();
-    if (v > 38.0) {
-        imp.reset();
-    } else {
-        server.restart();
-    }
+    imp.reset();
 });
 
 agent.on("weather.set.video", function(state) {
